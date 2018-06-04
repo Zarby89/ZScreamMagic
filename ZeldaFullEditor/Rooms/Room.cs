@@ -1001,7 +1001,7 @@ namespace ZeldaFullEditor
                 }
         }
         
-
+        
 
         public void InitDrawBgr()
         {
@@ -1079,10 +1079,10 @@ namespace ZeldaFullEditor
 
         public void loadChests(ref List<ChestData> chests_in_room)
         {
+            string sd = "";
             int cpos = (ROM.DATA[Constants.chests_data_pointer1 + 2] << 16) + (ROM.DATA[Constants.chests_data_pointer1 + 1] << 8) + (ROM.DATA[Constants.chests_data_pointer1]);
-            cpos = Addresses.snestopc(cpos);
-            int clength = (ROM.DATA[Constants.chests_length_pointer + 1] << 8) + (ROM.DATA[Constants.chests_length_pointer + 1]);
-
+            cpos = Addresses.snestopc(cpos) - 0x400000;
+            int clength = (ROM.DATA[Constants.chests_length_pointer+1] << 8) + (ROM.DATA[Constants.chests_length_pointer+0]);
             for (int i = 0; i < clength; i++)
             {
                 if ((((ROM.DATA[cpos + (i * 3) + 1] << 8) + (ROM.DATA[cpos + (i * 3)])) & 0x7FFF) == index)
@@ -1095,8 +1095,20 @@ namespace ZeldaFullEditor
                     }
                     chests_in_room.Add(new ChestData(ROM.DATA[cpos + (i * 3) + 2], big));
                     //
+
+                    
+                    //ROM.DATA[cpos + (i * 3) + 2]
+                }
+                try
+                {
+                    sd += ROMStructure.roomsNames[(((ROM.DATA[cpos + (i * 3) + 1] << 8) + (ROM.DATA[cpos + (i * 3)])) & 0x7FFF)] + " : " + ChestItems_Name.name[ROM.DATA[cpos + (i * 3) + 1]] + "\r\n";
+                }
+                catch
+                {
+
                 }
             }
+            File.WriteAllText("Dumpchest.txt", sd);
         }
 
 
@@ -2458,31 +2470,26 @@ namespace ZeldaFullEditor
             }
             //x x 4
             Tile floorTile1 = new Tile(ROM.DATA[Constants.tile_address + f], ROM.DATA[Constants.tile_address + f + 1]);
-                Tile floorTile2 = new Tile(ROM.DATA[Constants.tile_address + f + 2], ROM.DATA[Constants.tile_address + f + 3]);
-                Tile floorTile3 = new Tile(ROM.DATA[Constants.tile_address + f + 4], ROM.DATA[Constants.tile_address + f + 5]);
-                Tile floorTile4 = new Tile(ROM.DATA[Constants.tile_address + f + 6], ROM.DATA[Constants.tile_address + f + 7]);
+            Tile floorTile2 = new Tile(ROM.DATA[Constants.tile_address + f + 2], ROM.DATA[Constants.tile_address + f + 3]);
+            Tile floorTile3 = new Tile(ROM.DATA[Constants.tile_address + f + 4], ROM.DATA[Constants.tile_address + f + 5]);
+            Tile floorTile4 = new Tile(ROM.DATA[Constants.tile_address + f + 6], ROM.DATA[Constants.tile_address + f + 7]);
 
-                Tile floorTile5 = new Tile(ROM.DATA[Constants.tile_address_floor + f], ROM.DATA[Constants.tile_address_floor + f + 1]);
-                Tile floorTile6 = new Tile(ROM.DATA[Constants.tile_address_floor + f + 2], ROM.DATA[Constants.tile_address_floor + f + 3]);
-                Tile floorTile7 = new Tile(ROM.DATA[Constants.tile_address_floor + f + 4], ROM.DATA[Constants.tile_address_floor + f + 5]);
-                Tile floorTile8 = new Tile(ROM.DATA[Constants.tile_address_floor + f + 6], ROM.DATA[Constants.tile_address_floor + f + 7]);
+            Tile floorTile5 = new Tile(ROM.DATA[Constants.tile_address_floor + f], ROM.DATA[Constants.tile_address_floor + f + 1]);
+            Tile floorTile6 = new Tile(ROM.DATA[Constants.tile_address_floor + f + 2], ROM.DATA[Constants.tile_address_floor + f + 3]);
+            Tile floorTile7 = new Tile(ROM.DATA[Constants.tile_address_floor + f + 4], ROM.DATA[Constants.tile_address_floor + f + 5]);
+            Tile floorTile8 = new Tile(ROM.DATA[Constants.tile_address_floor + f + 6], ROM.DATA[Constants.tile_address_floor + f + 7]);
 
-                for (int xx = 0; xx < 16; xx++)
+            for (int xx = 0; xx < 16; xx++)
+            {
+                for (int yy = 0; yy < 32; yy++)
                 {
-                    for (int yy = 0; yy < 32; yy++)
-                    {
-                        floorTile1.Draw((xx * 4), (yy * 2)); floorTile2.Draw((xx * 4) + 1, (yy * 2));
-                        floorTile3.Draw((xx * 4) + 2, (yy * 2)); floorTile4.Draw((xx * 4) + 3, (yy * 2));
+                    floorTile1.Draw((xx * 4), (yy * 2)); floorTile2.Draw((xx * 4) + 1, (yy * 2));
+                    floorTile3.Draw((xx * 4) + 2, (yy * 2)); floorTile4.Draw((xx * 4) + 3, (yy * 2));
 
-                        floorTile5.Draw((xx * 4), (yy * 2) + 1); floorTile6.Draw((xx * 4) + 1, (yy * 2) + 1);
-                        floorTile7.Draw((xx * 4) + 2, (yy * 2) + 1); floorTile8.Draw((xx * 4) + 3, (yy * 2) + 1);
-                    }
+                    floorTile5.Draw((xx * 4), (yy * 2) + 1); floorTile6.Draw((xx * 4) + 1, (yy * 2) + 1);
+                    floorTile7.Draw((xx * 4) + 2, (yy * 2) + 1); floorTile8.Draw((xx * 4) + 3, (yy * 2) + 1);
                 }
-
-            
-
-
-
+            }
         }
 
 

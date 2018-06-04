@@ -53,38 +53,9 @@ namespace ZeldaFullEditor
         string baseROM = "";
         private void Form1_Load(object sender, EventArgs e)
         {
-            //settings.cfg format
-            //5 last projects - string dynamic
-            //
+
             searchtextListbox.DisplayMember = "Name";
             spritesListbox.DisplayMember = "Name";
-            /*if (File.Exists("settings.cfg"))
-            {
-                BinaryReader br = new BinaryReader(new FileStream("settings.cfg", FileMode.Open, FileAccess.Read));
-                for (int i = 0; i < 5; i++)
-                {
-                    string name = br.ReadString();
-                    if (name != "")
-                    {
-                        recentProjects.Add(name);
-                    }
-                }
-                br.Close();
-            }
-
-            if (recentProjects.Count > 0)
-            {
-                foreach (string s in recentProjects)
-                {
-                    ToolStripMenuItem tsi = new ToolStripMenuItem(s);
-                    tsi.Click += Tsi_Click;
-                    fileToolStripMenuItem.DropDownItems.Add(tsi);
-
-                }
-            }*/
-
-
-
 
             ROMStructure.loadDefaultProject();
 
@@ -103,16 +74,6 @@ namespace ZeldaFullEditor
         {
             if (dockPanel.DocumentsCount > 0)
             {
-                /*if (activeScene is SceneUW)
-                {
-                    activeScene = (dockPanel.ActiveDocument as DScene).scene;
-                    propertyGrid1.SelectedObject = activeScene.room;
-                }
-                else if(activeScene is SceneOW)
-                {
-                    activeScene = (dockPanel.ActiveDocument as DOWScene).scene;
-                    propertyGrid1.SelectedObject = (activeScene as SceneOW).room;
-                }*/
                 
             }
             else
@@ -155,7 +116,7 @@ namespace ZeldaFullEditor
 
 
             byte[] romBackup = (byte[])ROM.DATA.Clone();
-            Save save = new Save(all_rooms,entrances,messages);
+            Save save = new Save(all_rooms,entrances,TextData.messages);
             if (save.saveRoomsHeaders()) //no protection always the same size so we don't care :)
             {
                 MessageBox.Show("Failed to save, there is too many chest items", "Bad Error", MessageBoxButtons.OK);
@@ -202,7 +163,7 @@ namespace ZeldaFullEditor
                 ROM.DATA = (byte[])romBackup.Clone(); //restore previous rom data to prevent corrupting anything
                 return;
             }
-            if (save.saveTexts(messages, table_char))//There is a protection - Tested
+            if (save.saveTexts(TextData.messages, table_char))//There is a protection - Tested
             {
                 MessageBox.Show("Failed to save, there is too many texts", "Bad Error", MessageBoxButtons.OK);
                 ROM.DATA = (byte[])romBackup.Clone(); //restore previous rom data to prevent corrupting anything
@@ -214,6 +175,13 @@ namespace ZeldaFullEditor
                 ROM.DATA = (byte[])romBackup.Clone(); //restore previous rom data to prevent corrupting anything
                 return;
             }
+            if (save.saveOWExits())
+            {
+                MessageBox.Show("Failed to save ??, no idea why ", "Bad Error", MessageBoxButtons.OK);
+                ROM.DATA = (byte[])romBackup.Clone(); //restore previous rom data to prevent corrupting anything
+                return;
+            }
+
             saveInitialStuff(); //can't overwrite anything
 
             anychange = false;
@@ -299,51 +267,10 @@ namespace ZeldaFullEditor
 
         public string checkFileSupport()
         {
-            string v = "";
-            string title = getHeaderTitle();
 
-            if (title == "VT")
-            {
-                if (ROM.DATA[0x07FC2] == 0x20)
-                {
-                    ROM.DATA = null;
-                    MessageBox.Show("Sorry that ROM is not supported :(", "Error");
-                    v = "error";
-                    return "error";
-                }
-                Constants.Init_Jp(true); //VT
-                v = "vt";
-            }
-            else if (title == "ZE")
-            {
-                Constants.Init_Jp(); //JP
-                v = "jp";
-            }
-            else if (title == "TH")
-            {
-                v = "us";
-            }
-            else
-            {
-                v = "us";
-
-                MessageBox.Show("Sorry that ROM is not supported :(", "Error");
-                //load_default_room();
-                v = "error";
-                return "error";
-            }
+            string v = "us";
 
             return v;
-        }
-
-        public string getHeaderTitle()
-        {
-            string title = "";
-            for (int i = 0; i < 2; i++)
-            {
-                title += (char)ROM.DATA[0x07FC0 + i];
-            }
-            return title;
         }
 
         short[][] dungeons_rooms = new short[15][];
@@ -448,12 +375,13 @@ namespace ZeldaFullEditor
 
             GFX.gfxdata = Compression.DecompressTiles(); //decompress all the gfx from the game
 
-            additemGfx(205);
+            //Rando Gfx ?
+            /*additemGfx(205);
             additemGfx(206);
             additemGfx(207);
             additemGfx(208);
             additemGfx(165);
-            additemGfx(116);
+            additemGfx(116);*/
             GFX.AssembleMap16Tiles();
             GFX.AssembleMap32Tiles();
             for (int i = 0; i < 296; i++)
@@ -461,12 +389,8 @@ namespace ZeldaFullEditor
                 all_rooms[i] = (new Room(i)); // create all rooms
             }
 
-            if (version == "jp" || version == "vt")
-            {
-                readAllText();//TODO : Change that to have it own class
-                
-            }
-
+            TextData.readAllText();//TODO : Change that to have it own class
+            messageUpDown.Maximum = TextData.messages.Length;
             initRoomsList();
 
             GFX.LoadHudPalettes();
@@ -650,6 +574,18 @@ namespace ZeldaFullEditor
                 owMapList.Nodes[0].Nodes.Add(subnode);
                 owMapList.Nodes[1].Nodes.Add(subnode2);
             }
+            for(int i = 0x80;i<0x92;i++)//specials
+            {
+                TreeNode subnode = new TreeNode(i.ToString("X2") + " " + ROMStructure.mapsNames[i]);
+                subnode.Tag = (short)(i);
+                owMapList.Nodes[2].Nodes.Add(subnode);
+            }
+            for (int i = 0x93; i < 0xA0; i++)//specials
+            {
+                TreeNode subnode = new TreeNode(i.ToString("X2") + " " + ROMStructure.mapsNames[i]);
+                subnode.Tag = (short)(i);
+                owMapList.Nodes[3].Nodes.Add(subnode);
+            }
             List<TreeNode> nodetoRemove = new List<TreeNode>();
             for (int i = 0; i < owMapList.Nodes[0].GetNodeCount(false); i++)
             {
@@ -788,7 +724,6 @@ namespace ZeldaFullEditor
                 }
                 //ds.scene.drawRoom();
             }
-
                 activeScene.drawRoom();
                 if (animated)
                 {
@@ -851,7 +786,7 @@ namespace ZeldaFullEditor
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AboutBox1 aboutBox = new AboutBox1();
-            aboutBox.ShowDialog();
+            aboutBox.Show();
         }
 
         Room_Name room_names = new Room_Name();
@@ -1342,260 +1277,7 @@ namespace ZeldaFullEditor
 
 
 
-        string[] messages = new string[400];
-        int[] messagesPos = new int[400];
-        public void readAllText()
-        {
-
-
-            int pos = 0xE0000;
-            int msgid = 0;
-
-
-            while (msgid < 400)
-            {
-                messagesPos[msgid] = pos;
-                //Console.WriteLine(msgid + " Message");
-                messages[msgid] = "";
-                while (ROM.DATA[pos] != 0xFB)
-                {
-
-                    if (ROM.DATA[pos] <= 0xF0)
-                    {
-                        string s = table_char.hexToChar(ROM.DATA[pos]);
-                        if (s != null)
-                        {
-                            messages[msgid] += s;
-                            pos++;
-                            continue;
-                        }
-                    }
-
-                    if (ROM.DATA[pos] == 0xFD) //kanji
-                    {
-                        pos++;
-                        messages[msgid] += table_char.hexToChar(ROM.DATA[pos], true);
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xD2)
-                    {
-                        messages[msgid] += "[D2]";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xD3)
-                    {
-                        messages[msgid] += "[D3]";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xE5)
-                    {
-                        messages[msgid] += "[E5]";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xE6)
-                    {
-                        messages[msgid] += "[E6]";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xE7)
-                    {
-                        messages[msgid] += "[E7]";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xE8)
-                    {
-                        messages[msgid] += "[E8]";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xE9)
-                    {
-                        messages[msgid] += "[E9]";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xEA)
-                    {
-                        messages[msgid] += "[EA]";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xEB)
-                    {
-                        messages[msgid] += "[EB]";
-                        pos++;
-                        continue;
-                    }
-
-                    if (ROM.DATA[pos] == 0xFF)
-                    {
-                        messages[msgid] += " ";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xFC) //speed
-                    {
-                        messages[msgid] += "[SPD ";
-                        pos++;
-                        messages[msgid] += ROM.DATA[pos].ToString("X2") + "]";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xF7)
-                    {
-                        messages[msgid] += "[LN1]";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xF8)
-                    {
-                        messages[msgid] += "\r\n[LN2]\r\n";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xF9)
-                    {
-                        messages[msgid] += "\r\n[LN3]\r\n";
-                        pos++;
-                        continue;
-                    }
-                    if (ROM.DATA[pos] == 0xF6)
-                    {
-                        messages[msgid] += "\r\n[SCL]\r\n";
-                        pos++;
-                        continue;
-                    }
-
-
-                    if (ROM.DATA[pos] == 0xFE) //command
-                    {
-                        pos++;
-                        if (ROM.DATA[pos] == 0x67) //changepic?
-                        {
-                            messages[msgid] += "[PIC]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x69) //waterfall item
-                        {
-                            messages[msgid] += "[ITM]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x6A) //player name
-                        {
-                            messages[msgid] += "[NAM]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x78) //pause + arg
-                        {
-                            messages[msgid] += "[WAI ";
-                            pos++;
-                            messages[msgid] += ROM.DATA[pos].ToString("X2") + "]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x68) //choice1
-                        {
-                            messages[msgid] += "[CH1]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x71) //choice2
-                        {
-                            messages[msgid] += "[CH2]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x72) //choice3
-                        {
-                            messages[msgid] += "[CH3]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x6B)//Window Effect, arg = 02 = no border
-                        {
-                            messages[msgid] += "[WIN ";
-                            pos++;
-                            messages[msgid] += ROM.DATA[pos].ToString("X2") + "]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x6C)//Number? arg1
-                        {
-                            messages[msgid] += "[NBR ";
-                            pos++;
-                            messages[msgid] += ROM.DATA[pos].ToString("X2") + "]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x6D)//position arg1
-                        {
-                            messages[msgid] += "[POS ";
-                            pos++;
-                            messages[msgid] += ROM.DATA[pos].ToString("X2") + "]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x6E)//scroll speed arg1
-                        {
-                            messages[msgid] += "[SCS ";
-                            pos++;
-                            messages[msgid] += ROM.DATA[pos].ToString("X2") + "]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x77)//Color arg1?
-                        {
-                            messages[msgid] += "[COL ";
-                            pos++;
-                            messages[msgid] += ROM.DATA[pos].ToString("X2") + "]";
-                            pos++;
-                            continue;
-                        }
-                        if (ROM.DATA[pos] == 0x79)//Sound arg1
-                        {
-
-                            messages[msgid] += "[SND ";
-                            pos++;
-                            messages[msgid] += ROM.DATA[pos].ToString("X2") + "]";
-                            pos++;
-                            continue;
-                        }
-
-                        //if it reach that part then it an unknown command just loop back and hope everything will be fine
-                        pos++;
-                        continue;
-                    }
-
-                    if (ROM.DATA[pos] == 0xFA) //wait for key
-                    {
-                        pos++;
-                        messages[msgid] += "[WFK]";
-                        continue;
-                    }
-                    messages[msgid] += "[" + ROM.DATA[pos].ToString("X2") + "]";
-                    pos++;
-                    continue;
-                }
-                if (pos >= 0xE7355)
-                {
-                    messageUpDown.Maximum = msgid;
-                    break;
-                }
-                pos++;
-
-                msgid++;
-
-            }
-        }
+ 
 
         private void button5_Click(object sender, EventArgs e)
         {
@@ -1614,13 +1296,10 @@ namespace ZeldaFullEditor
 
         private void messageUpDown_ValueChanged(object sender, EventArgs e)
         {
-            if (version == "jp" || version == "vt")
+            if (TextData.messages[(int)messageUpDown.Value] != null)
             {
-                if (messages[(int)messageUpDown.Value] != null)
-                {
-                    messagetextBox.Text = messages[(int)messageUpDown.Value];
-                    label16.Text = "Addr: " + messagesPos[(int)messageUpDown.Value].ToString("X6");
-                }
+                messagetextBox.Text = TextData.messages[(int)messageUpDown.Value];
+                label16.Text = "Addr: " + TextData.messagesPos[(int)messageUpDown.Value].ToString("X6");
             }
         }
 
@@ -1631,11 +1310,8 @@ namespace ZeldaFullEditor
 
         private void messageshowButton_Click(object sender, EventArgs e)
         {
-            if (version == "jp" || version == "vt")
-            {
                 tabControl1.SelectTab("texttabPage");
                 messageUpDown.Value = activeScene.room.messageid;
-            }
         }
 
         private void insertToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1650,21 +1326,15 @@ namespace ZeldaFullEditor
 
         private void textpreviewButton_Click(object sender, EventArgs e)
         {
-            if (version == "jp" || version == "vt")
-            {
-                previewText.text = messagetextBox.Text;
-                previewText.ShowDialog();
-            }
+            previewText.text = messagetextBox.Text;
+            previewText.ShowDialog();
 
         }
 
         private void messagetextBox_TextChanged(object sender, EventArgs e)
         {
-            if (version == "jp" || version == "vt")
-            {
-                messages[(int)messageUpDown.Value] = messagetextBox.Text.ToUpper();
 
-            }
+            TextData.messages[(int)messageUpDown.Value] = messagetextBox.Text;
         }
 
         private void sendToBg1ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2400,8 +2070,8 @@ namespace ZeldaFullEditor
 
         private void messagetextBox_Validated(object sender, EventArgs e)
         {
-            messagetextBox.Text = messagetextBox.Text.ToUpper();
-            messages[(int)messageUpDown.Value] = messagetextBox.Text.ToUpper();
+            messagetextBox.Text = messagetextBox.Text;
+            TextData.messages[(int)messageUpDown.Value] = messagetextBox.Text;
         }
 
         private void searchtextListbox_SelectedIndexChanged(object sender, EventArgs e)
@@ -2417,7 +2087,7 @@ namespace ZeldaFullEditor
             {
                 searchtextListbox.BeginUpdate();
                 searchtextListbox.Items.Clear();
-                string[] result = messages
+                string[] result = TextData.messages
                 .Where(x => x != null)
                 .Where(x => (x.ToUpper().Contains(searchtextText)))
                 .Select((x, i) => x)
@@ -2428,7 +2098,7 @@ namespace ZeldaFullEditor
 
                 for (int i = 0; i < result.Length; i++)
                 {
-                    int index = Array.IndexOf(messages, result[i]);
+                    int index = Array.IndexOf(TextData.messages, result[i]);
                     searchtextListbox.Items.Add(new dataObject((short)index, result[i]));
                 }
 
@@ -2440,9 +2110,9 @@ namespace ZeldaFullEditor
                 searchtextListbox.BeginUpdate();
                 for (int i = 0; i < 400; i++)
                 {
-                    if (messages[i] != null)
+                    if (TextData.messages[i] != null)
                     {
-                        searchtextListbox.Items.Add(new dataObject((short)i, messages[i]));
+                        searchtextListbox.Items.Add(new dataObject((short)i, TextData.messages[i]));
                     }
                 }
                 searchtextListbox.EndUpdate();
@@ -2548,60 +2218,89 @@ namespace ZeldaFullEditor
 
             //(map / 16) = Y position
             //map - (Y*16) = X position
-            int lowerX = 16; //what we need to remove from the image to the left
-            int lowerY = 16; //what we need to remove from the image to the right
-            int higherX = 0; //what we need to remove from the image to the left
-            int higherY = 0; //what we need to remove from the image to the right
-            Room savedRoom = activeScene.room;
+             int lowerX = 16; //what we need to remove from the image to the left
+             int lowerY = 16; //what we need to remove from the image to the right
+             int higherX = 0; //what we need to remove from the image to the left
+             int higherY = 0; //what we need to remove from the image to the right
+             Room savedRoom = activeScene.room;
 
-            if (selectedMapPng.Count > 0)
-            {
-                Bitmap b = new Bitmap(8192, 8192);
-                using (Graphics gb = Graphics.FromImage(b))
-                {
+             if (selectedMapPng.Count > 0)
+             {
+                 Bitmap b = new Bitmap(8192, 10752);
+                 using (Graphics gb = Graphics.FromImage(b))
+                 {
 
-                    foreach (short s in selectedMapPng)
-                    {
-                        int cx = 0;
-                        int cy = 0;
-                        cy = (s / 16);
-                        cx = s - (cy * 16);
-                        if (cx < lowerX) { lowerX = cx; }
-                        if (cy < lowerY) { lowerY = cy; }
-                        if (cx > higherX) { higherX = cx; }
-                        if (cy > higherY) { higherY = cy; }
+                     foreach (short s in selectedMapPng)
+                     {
+                         int cx = 0;
+                         int cy = 0;
+                         cy = (s / 16);
+                         cx = s - (cy * 16);
+                         if (cx < lowerX) { lowerX = cx; }
+                         if (cy < lowerY) { lowerY = cy; }
+                         if (cx > higherX) { higherX = cx; }
+                         if (cy > higherY) { higherY = cy; }
 
-                        activeScene.room = all_rooms[s];
-                        activeScene.room.reloadGfx();
-                        activeScene.need_refresh = true;
-                        activeScene.drawRoom();
-                        gb.DrawImage(activeScene.scene_bitmap, new Point(cx * 512, cy * 512));
-                    }
-                }
-                int image_size_x = ((higherX - lowerX) * 512) + 512;
-                int image_size_y = ((higherY - lowerY) * 512) + 512;
-                int image_start_x = lowerX * 512;
-                int image_start_y = lowerY * 512;
-                Bitmap nb = new Bitmap(image_size_x, image_size_y);
-                using (Graphics gb = Graphics.FromImage(nb))
-                {
-                    gb.DrawImage(b, 0, 0, new Rectangle(image_start_x, image_start_y, image_size_x, image_size_y), GraphicsUnit.Pixel);
-                }
+                         activeScene.room = all_rooms[s];
+                         activeScene.room.reloadGfx();
+                         activeScene.need_refresh = true;
+                         activeScene.drawRoom();
+                         gb.DrawImage(activeScene.scene_bitmap, new Point(cx * 512, cy * 512));
+                     }
+                 }
+                 int image_size_x = ((higherX - lowerX) * 512) + 512;
+                 int image_size_y = ((higherY - lowerY) * 512) + 512;
+                 int image_start_x = lowerX * 512;
+                 int image_start_y = lowerY * 512;
+                 Bitmap nb = new Bitmap(image_size_x, image_size_y);
+                 using (Graphics gb = Graphics.FromImage(nb))
+                 {
+                     gb.DrawImage(b, 0, 0, new Rectangle(image_start_x, image_start_y, image_size_x, image_size_y), GraphicsUnit.Pixel);
+                 }
 
-                nb.Save("MapTest.png");
-                b = null;
-                nb = null;
-            }
-            else
-            {
+                 nb.Save("MapTest.png");
+                 b.Dispose();
+                 b = null;
+                 nb.Dispose();
+                 nb = null;
+             }
+             else
+             {
 
-                //scene.scene_bitmap.Save("singlemap.png");
-            }
-            activeScene.room = savedRoom;
-            activeScene.room.reloadGfx();
-            activeScene.need_refresh = true;
-            activeScene.drawRoom();
+                 //scene.scene_bitmap.Save("singlemap.png");
+             }
+             activeScene.room = savedRoom;
+             activeScene.room.reloadGfx();
+             activeScene.need_refresh = true;
+             activeScene.drawRoom();
+            /* //All Overworld Maps Export Code
+           for (int i = 0; i < 0x80; i++)
+           {
+               addMapTab((short)i);
+               propertyGrid3.SelectedObject = (RoomOW)(activeScene as SceneOW).room;
+               RoomOW r = (RoomOW)(activeScene as SceneOW).room;
+               // (RoomOW)(activeScene as SceneOW)
+               r.updateOverworldPalettes();
+               r.palette = (byte)(ROM.DATA[Constants.overworldMapPalette + r.index] << 2);
+               r.blockset = ROM.DATA[Constants.mapGfx + r.index];
+               r.sprite_palette = (byte)(ROM.DATA[Constants.overworldSpritePalette + r.index]);
+               r.GetSelectedMapGfx();
+               (activeScene as SceneOW).DrawMap32Tiles();
+               (activeScene as SceneOW).createTmx("Maps");
+               //Palettes OW CODE :
 
+               Bitmap palette_bitmap = new Bitmap(256, 96);
+               pictureBox1.Image = palette_bitmap;
+               Graphics gpalette = Graphics.FromImage(pictureBox1.Image);
+               for (int x = 0; x < 16; x++)
+               {
+                   for (int y = 0; y < 6; y++)
+                   {
+                       gpalette.FillRectangle(new SolidBrush(GFX.loadedPalettes[x, y]), new Rectangle(x * 16, y * 16, 16, 16));
+                   }
+               }
+               pictureBox1.Refresh();
+           }*/
         }
 
 
@@ -3347,7 +3046,7 @@ namespace ZeldaFullEditor
                 addMapTab((short)e.Node.Tag);
                 propertyGrid3.SelectedObject = (RoomOW)(activeScene as SceneOW).room;
                 (activeScene as SceneOW).DrawMap32Tiles();
-
+                
                 //Palettes OW CODE :
 
                 Bitmap palette_bitmap = new Bitmap(256, 96);
@@ -3367,6 +3066,37 @@ namespace ZeldaFullEditor
         private void propertyGrid3_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
             (activeScene as SceneOW).need_refresh_gfx = true;
+        }
+
+        private void hideSpritesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            activeScene.need_refresh = true;
+        }
+
+        private void hideChestItemsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            activeScene.need_refresh = true;
+        }
+
+        private void selectAllMapForExportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < 296; i++)
+            {
+                selectedMapPng.Add((short)i);
+            }
+            loadRoomList(296);
+        }
+
+        private void deselectedAllMapForExportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            selectedMapPng.Clear();
+            loadRoomList(296);
+        }
+
+        private void tabControl2_Click(object sender, EventArgs e)
+        {
+            //DungeonGenerator dg = new DungeonGenerator();
+            //dg.ShowDialog();
         }
     }
 

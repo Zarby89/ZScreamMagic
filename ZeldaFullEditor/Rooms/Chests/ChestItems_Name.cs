@@ -178,8 +178,22 @@ namespace ZeldaFullEditor
 "Turtle Key(VT)",
 "GanonTower Key(VT)",
 "??? Key(VT)",
-"??? Key(VT)"
-            };
+"??? Key(VT)",
+           "Unused",
+            "Unused",
+             "Unused",
+              "Unused",
+               "Unused",
+                "Unused",
+                 "Unused",
+                  "Unused",
+                   "Unused",
+                    "Unused",
+                     "Unused",
+                      "Unused",
+                       "Unused",
+                        "Unused",
+        };
 
 
 

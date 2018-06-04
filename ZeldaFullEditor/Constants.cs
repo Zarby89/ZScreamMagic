@@ -102,6 +102,16 @@ namespace ZeldaFullEditor
         
         public static int chests_length_pointer = 0xEBF6;
         public static int chests_data_pointer1 = 0xEBFB;
+
+        public static int room_objects_section1 = 0x50000;
+        public static int room_objects_section2 = 0xF8780;
+        public static int room_objects_section3 = 0x1EB06;
+
+        public static int room_objects_section1_max = 0x53730;
+        public static int room_objects_section2_max = 0xFFFFF;
+        public static int room_objects_section3_max = 0x1FFFF;
+
+
         //public static int chests_data_pointer2 = 0xEC0A; //Disabled for now could be used for expansion
         //public static int chests_data_pointer3 = 0xEC10; //Disabled for now could be used for expansion
 
@@ -233,9 +243,17 @@ namespace ZeldaFullEditor
             gfx_animated_pointer = 0x10624;
             initial_equipement = 0x183000;
 
+            room_objects_section1 = 0x50000;
+            room_objects_section2 = 0xF878A;
+            room_objects_section3 = 0x1EB90;
 
-            //Entrances
-            entrance_room = 0x14577; //word value for each room
+            room_objects_section1_max = 0x5374F;
+            room_objects_section2_max = 0xFFFF7;
+            room_objects_section3_max = 0x1FFFF;
+
+
+        //Entrances
+        entrance_room = 0x14577; //word value for each room
             entrance_scrolledge = 0x1491D; //0x14681 //8 bytes per room, HU, FU, HD, FD, HL, FL, HR, FR
             entrance_yscroll = 0x14AA9; //2bytes each room
             entrance_xscroll = 0x14BB3; //2bytes

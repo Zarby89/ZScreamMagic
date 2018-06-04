@@ -151,7 +151,7 @@ namespace ZeldaFullEditor
 
             if (Compression.bpp[index] == 3)
             {
-                int ypos = 0;
+                int ypos = 0; 
                 for (int i = 0; i < 64; i++) //for each tiles //16 per lines
                 {
                     for (int y = 0; y < 8; y++)//for each lines
@@ -183,10 +183,55 @@ namespace ZeldaFullEditor
                     }
 
                 }
+                int n = 0;
+                for (int y = 0; y < 32; y++)
+                {
+                    for (int x = 0; x < 128; x++)
+                    {
+
+                        buffer[n] = imgdata[x, y];
+                        n++;
+
+                    }
+                }
             }
-            else if (Compression.bpp[index] == 2)
+            else  //this is not working !
             {
-                imgdata = new byte[128, 64];
+                //[r0, bp1], [r0, bp2], [r1, bp1], [r1, bp2], [r2, bp1], [r2, bp2], [r3, bp1], [r3, bp2]
+                //[r4, bp1], [r4, bp2], [r5, bp1], [r5, bp2], [r6, bp1], [r6, bp2], [r7, bp1], [r7, bp2]
+
+                //pos -= 64;
+                if (index == 113)
+                {
+                    pos = 0x02A600;
+                }
+                if (index == 114)
+                {
+                    pos = 0x02B200;
+                }
+                if (index == 218)
+                {
+                    pos = 0x052800;
+                }
+                if (index == 219)
+                {
+                    pos = 0x053400;
+                }
+                if (index == 220)
+                {
+                    pos = 0x054000;
+                }
+                if (index == 221)
+                {
+                    pos = 0x054C00;
+                }
+                if (index == 222)
+                {
+                    pos = 0x055800;
+                }
+
+                imgdata = new byte[128, 64]; //ok it 64 to not screw up the indexing, last 32 are just empty data
+                buffer = new byte[128 * 64];
                 int ypos = 0;
                 for (int i = 0; i < 128; i++) //for each tiles //16 per lines
                 {
@@ -196,16 +241,17 @@ namespace ZeldaFullEditor
                         for (int x = 0; x < 8; x++)
                         {
                             byte[] bitmask = new byte[] { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-                            byte b1 = (byte)((data[(y * 2) + (16 * pos)] & (bitmask[x])));
-                            byte b2 = (byte)(data[((y * 2) + (16 * pos)) + 1] & (bitmask[x]));
+                            byte b1 = (byte)((data[(y * 2) + pos] & (bitmask[x])));
+                            byte b2 = (byte)(data[((y * 2) + pos) + 1] & (bitmask[x]));
                             byte b = 0;
                             if (b1 != 0) { b |= 1; };
                             if (b2 != 0) { b |= 2; };
+
                             imgdata[x + xx, y + (yy * 8)] = b;
                         }
 
                     }
-                    pos++;
+                    pos+=16;
                     ypos++;
                     xx += 8;
                     if (ypos >= 16)
@@ -217,18 +263,20 @@ namespace ZeldaFullEditor
                     }
 
                 }
-            }
-            int n = 0;
-            for (int y = 0; y < 32; y++)
-            {
-                for (int x = 0; x < 128; x++)
+
+                int n = 0;
+                for (int y = 0; y < 64; y++)
                 {
+                    for (int x = 0; x < 128; x++)
+                    {
 
-                    buffer[n] = imgdata[x, y];
-                    n++;
+                        buffer[n] = imgdata[x, y];
+                        n++;
 
+                    }
                 }
             }
+
             return buffer;//buffer.ToArray();
         }
 
@@ -247,7 +295,15 @@ namespace ZeldaFullEditor
         public static int currentHeight;
         public static unsafe void begin_draw(Bitmap b, int width = 512, int height = 512)
         {
-            currentbmpData = b.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            currentbmpData = b.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            currentData = (byte*)currentbmpData.Scan0.ToPointer();
+            currentWidth = width;
+            currentHeight = height;
+        }
+
+        public static unsafe void begin_draw3bpp(Bitmap b, int width = 512, int height = 512)
+        {
+            currentbmpData = b.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format4bppIndexed);
             currentData = (byte*)currentbmpData.Scan0.ToPointer();
             currentWidth = width;
             currentHeight = height;
@@ -288,7 +344,105 @@ namespace ZeldaFullEditor
             end_draw(b);
             return b;
         }
-        
+
+
+        public static Bitmap singleGrayscaletobmp(int index)
+        {
+            byte[] data = bpp3snestoindexed(gfxdata, index);
+            Bitmap b = new Bitmap(128, 32,PixelFormat.Format4bppIndexed);
+            if (data.Length == (128*32))
+            {
+                begin_draw3bpp(b, 128, 32);
+                unsafe
+                {
+                     for (int y = 0; y < 32; y++)
+                     {
+                         for (int x = 0; x < 64; x++)
+                         {
+                             byte cb = (byte)(((data[(x*2) + (y * 128) ] << 4 & 0xF0)) | (data[(x*2) + (y * 128)+1] & 0x0F));
+                             currentData[(x) + (y * 64)] = cb;
+                         }
+                     }
+                    /*for (int i = 0; i < (128 * 32); i++)
+                    {
+                        currentData[i] = data[i];
+                    }*/
+                }
+
+               /* for (int i = 0; i < 32; i++)
+                {
+                    for (int j = 0; j < 256; j++)
+                    {
+                        bytePointerNew[(j * 2) + (i * 512) + 1] = (byte)((bytePointer[j + (i * 64)] & 0x0F) + palette * 16);
+                        bytePointerNew[(j * 2) + (i * 512)] = (byte)(((bytePointer[j + (i * 64)] >> 4) & 0x0F) + palette * 16);
+                        //bytePointerNew = bytePointer;
+                    }
+                    //System.Runtime.InteropServices.Marshal.Copy(indexValues, (i * 64), ptr2 + (i * 256), 64);
+                }*/
+
+
+                end_draw(b);
+                ColorPalette p = b.Palette;
+                for (int i = 0; i < 8; i++)
+                {
+                    p.Entries[i] = Color.FromArgb(24 * i, 24 * i, 24 * i);
+                }
+                for (int i = 8; i < 16; i++)
+                {
+                    p.Entries[i] = Color.FromArgb(255, 0, 0);
+                }
+                b.Palette = p;
+            }
+            else
+            {
+                b = new Bitmap(128, 64);
+                begin_draw(b, 128, 64);
+                unsafe
+                {
+                    for (int x = 0; x < 128; x++)
+                    {
+                        for (int y = 0; y < 64; y++)
+                        {
+                            int dest = (x + (y * 128)) * 4;
+                            currentData[dest] = (byte)(data[(dest / 4)] * 24);
+                            currentData[dest + 1] = (byte)(data[(dest / 4)] * 24);
+                            currentData[dest + 2] = (byte)(data[(dest / 4)] * 24);
+                            currentData[dest + 3] = 255;
+                        }
+                    }
+                }
+                end_draw(b);
+            }
+             //128 = 4
+
+
+            return b;
+        }
+
+        public static Bitmap single2bppGrayscaletobmp(int index)
+        {
+            byte[] data = bpp3snestoindexed(gfxdata, index);
+            Bitmap b = new Bitmap(128, 32); //128 = 4
+
+            begin_draw(b, 128, 32);
+            unsafe
+            {
+                for (int x = 0; x < 128; x++)
+                {
+                    for (int y = 0; y < 32; y++)
+                    {
+                        int dest = (x + (y * 128)) * 4;
+                        currentData[dest] = (byte)(data[(dest / 4)] * 32);
+                        currentData[dest + 1] = (byte)(data[(dest / 4)] * 32);
+                        currentData[dest + 2] = (byte)(data[(dest / 4)] * 32);
+                        currentData[dest + 3] = 255;
+                    }
+                }
+            }
+            end_draw(b);
+            return b;
+        }
+
 
 
         public static Bitmap selectedtobmp(byte[] sheets, int p = 4,bool sprite = false)
@@ -331,6 +485,9 @@ namespace ZeldaFullEditor
                     }
                 }
             }
+
+
+
 
 
 

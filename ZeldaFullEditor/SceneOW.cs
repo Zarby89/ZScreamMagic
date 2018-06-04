@@ -26,6 +26,10 @@ namespace ZeldaFullEditor
         public Bitmap map_bitmap = new Bitmap(512, 512, PixelFormat.Format32bppRgb);
         public object selectedObject = null;
         public bool need_refresh_gfx = false;
+        public int mapX = 0;
+        public int mapY = 0;
+
+
         public SceneOW(zscreamForm f)
         {
             this.MouseDown += new MouseEventHandler(onMouseDown);
@@ -36,6 +40,7 @@ namespace ZeldaFullEditor
             mainForm = f;
             graphicsOverlay = Graphics.FromImage(scene_bitmap_overlay);
             graphics = Graphics.FromImage(scene_bitmap);
+            Console.WriteLine("Scene Created!");
         }
 
         public override void Clear()
@@ -67,8 +72,8 @@ namespace ZeldaFullEditor
                     int mx = 0;
                     if (room.largeMap)
                     {
-                        my = ((room.index) / 8);
-                        mx = ((room.index) - (my * 8));
+                        my = ((room.index & 0x3F) / 8);
+                        mx = ((room.index & 0x3F) - (my * 8));
                         mx = mx << 9;
                         my = my << 9;
                         bbox = new Rectangle((o.playerX & 0x1FF) + (o.playerX & 0xFE00) - mx, (o.playerY & 0x1FF) + (o.playerY & 0xFE00) - my, 16, 16);
@@ -112,8 +117,8 @@ namespace ZeldaFullEditor
 
                 if (selectedObject != null)
                 {
-                    (selectedObject as ExitOW).playerX = (short)e.X;
-                    (selectedObject as ExitOW).playerY = (short)e.Y;
+                    (selectedObject as ExitOW).playerY = (short)((mapY << 9) + e.Y);
+                    (selectedObject as ExitOW).playerX = (short)((mapX << 9) + e.X);
                     need_refresh = true;
                 }
 
@@ -145,6 +150,7 @@ namespace ZeldaFullEditor
 
         public override void drawRoom() //Draw Overworld !
         {
+            Console.WriteLine("Draw Begin");
             if (room == null)
             {
                 return;
@@ -164,17 +170,25 @@ namespace ZeldaFullEditor
             {
                 graphicsOverlay.Clear(Color.Transparent);
                 //this.Image = scene_bitmap;
-                drawExits();
-                drawEntrances();
-                drawHoles();
-                drawItems();
-                drawSprites();
+                if (room.index < 0x80)
+                {
+                    drawExits();
+                    drawEntrances();
+                    drawHoles();
+                    drawItems();
+                    drawSprites();
+                }
                 graphics.DrawImage(map_bitmap, 0, 0);
                 graphics.DrawImage(scene_bitmap_overlay, 0, 0);
+
+
+                mapY = ((room.index & 0x3F) / 8);
+                mapX = (room.index & 0x3F) - (mapY * 8);
+
                 need_refresh = false;
                 this.Image = scene_bitmap;
             }
-
+            Console.WriteLine("Draw End");
 
         }
         //
@@ -268,7 +282,7 @@ namespace ZeldaFullEditor
 
         }
 
-        public void createTileset()
+        public void createTileset(string filename)
         {
             Bitmap b = new Bitmap(16, 16);
             Bitmap tileset = new Bitmap(1024,1024);
@@ -286,20 +300,20 @@ namespace ZeldaFullEditor
                     y++;
                 }
             }
-            tileset.Save("tileset.png");
+            tileset.Save(filename+"tileset.png");
         }
 
-        public void createTilesetType()
+        public void createTilesetType(string filename)
         {
 
             Bitmap tileset = GFX.singletobmp(GFX.blocksetData, 0, 2, false);
-            tileset.Save("tilesettype.png");
+            tileset.Save(filename + "tilesettype.png");
         }
 
-        public void createTmx()
+        public void createTmx(string directory = "")
         {
 
-            createTileset();
+           
             int sx = 32;
             int sy = 32;
             if (room.largeMap)
@@ -348,12 +362,32 @@ namespace ZeldaFullEditor
             s += " </layer>\r\n";
 
             s += "</map>\r\n";
-            SaveFileDialog of = new SaveFileDialog();
-            of.DefaultExt = ".tmx";
-            of.Filter = "Tiled Map .tmx|*.tmx";
-            if (of.ShowDialog() == DialogResult.OK)
+            bool exists = false;
+            if (!Directory.Exists("Maps\\" + ROMStructure.mapsNames[room.index]))
             {
-                File.WriteAllText(of.FileName, s);
+                Directory.CreateDirectory("Maps\\" + ROMStructure.mapsNames[room.index]);
+            }
+            else
+            {
+                return;
+            }
+                SaveFileDialog of = new SaveFileDialog();
+            if (directory == "")
+            {
+
+                of.DefaultExt = ".tmx";
+                of.Filter = "Tiled Map .tmx|*.tmx";
+                if (of.ShowDialog() == DialogResult.OK)
+                {
+                    File.WriteAllText(of.FileName, s);
+                    createTileset(Path.GetDirectoryName(of.FileName) + Path.DirectorySeparatorChar);
+                }
+            }
+            else
+            {
+
+                    File.WriteAllText("Maps\\" + ROMStructure.mapsNames[room.index] + "\\Map.tmx", s);
+                    createTileset("Maps\\" + ROMStructure.mapsNames[room.index] + "\\");
             }
             s = "";
 
@@ -361,9 +395,17 @@ namespace ZeldaFullEditor
             s += "<tileset name=\"Map\" tilewidth=\"16\" tileheight=\"16\" tilecount=\"4096\" columns=\"64\">\r\n";
              s += "<image source=\"tileset.png\" width=\"1024\" height=\"1024\"/>\r\n";
             s += "</tileset>\r\n";
-            File.WriteAllText("Map.tsx", s);
+            if (directory == "")
+            {
+                File.WriteAllText(Path.GetDirectoryName(of.FileName) + Path.DirectorySeparatorChar + "Map.tsx", s);
+                createTilesetType(Path.GetDirectoryName(of.FileName) + Path.DirectorySeparatorChar);
+            }
+            else
+            {
+                File.WriteAllText("Maps\\" + ROMStructure.mapsNames[room.index] + "\\Map.tsx", s);
+                createTilesetType("Maps\\" + ROMStructure.mapsNames[room.index] + "\\");
 
-            createTilesetType();
+            }
             s = "";
 
             s += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n";
@@ -376,7 +418,14 @@ namespace ZeldaFullEditor
 
 
             s += "</tileset>\r\n";
-            File.WriteAllText("TilesTypes.tsx", s);
+            if (directory == "")
+            {
+                File.WriteAllText(Path.GetDirectoryName(of.FileName) + Path.DirectorySeparatorChar + "TilesTypes.tsx", s);
+            }
+            else
+            {
+                File.WriteAllText("Maps\\" + ROMStructure.mapsNames[room.index] + "\\TilesTypes.tsx", s);
+            }
         }
 
         ushort[,] mapload = new ushort[64,64];
@@ -617,13 +666,14 @@ namespace ZeldaFullEditor
 
             }
         }
-
+        public List<int> roomExits = new List<int>();
         public void drawExits()
         {
-            
+            roomExits.Clear();
             for (int i = 0;i<0x4F;i++)
             {
                 ExitOW e = OverworldGlobal.exits[i];
+                roomExits.Add(i);
                 Font f2 = new Font("Courier New", 9,FontStyle.Bold);
                 Brush bgrBrush = Brushes.WhiteSmoke;
                 Brush fontBrush = Brushes.DarkSlateBlue;
@@ -642,24 +692,40 @@ namespace ZeldaFullEditor
                     int mx = 0;
                     if (room.largeMap)
                     {
-                        my = ((room.index) / 8);
-                        mx = ((room.index) - (my * 8));
+                        my = ((room.index & 0x3F) / 8);
+                        mx = ((room.index & 0x3F) - (my * 8));
                         mx = mx << 9;
                         my = my << 9;
                        // Console.WriteLine(mx + "," + my);
                         
                         graphicsOverlay.FillRectangle(bgrBrush, new Rectangle((e.playerX & 0x1FF) + (e.playerX & 0xFE00) - mx, (e.playerY & 0x1FF) + (e.playerY & 0xFE00) - my, 16, 16));
                         graphicsOverlay.DrawRectangle(contourPen, new Rectangle((e.playerX & 0x1FF) + (e.playerX & 0xFE00) - mx, (e.playerY & 0x1FF) + (e.playerY & 0xFE00) - my, 16, 16));
-                        graphicsOverlay.DrawString(i.ToString("X2"), f2, fontBrush, new Point((e.playerX & 0x1FF)-1 + (e.playerX & 0xFE00) - mx, (e.playerY & 0x1FF) + (e.playerY & 0xFE00) - my+1));
-
+                        
+                        if (e.selected == true)
+                        {
+                            graphicsOverlay.DrawString(i.ToString("X2") + " -> " + e.roomId, f2, fontBrush, new Point((e.playerX & 0x1FF) - 1 + (e.playerX & 0xFE00) - mx, (e.playerY & 0x1FF) + (e.playerY & 0xFE00) - my + 1));
+                        }
+                        else
+                        {
+                            graphicsOverlay.DrawString(i.ToString("X2"), f2, fontBrush, new Point((e.playerX & 0x1FF) - 1 + (e.playerX & 0xFE00) - mx, (e.playerY & 0x1FF) + (e.playerY & 0xFE00) - my + 1));
+                        }
+                     
                     }
                     else
                     {
                         graphicsOverlay.FillRectangle(bgrBrush, new Rectangle((e.playerX & 0x1FF), (e.playerY & 0x1FF), 16, 16));
                         graphicsOverlay.DrawRectangle(contourPen, new Rectangle((e.playerX & 0x1FF), (e.playerY & 0x1FF), 16, 16));
-                        graphicsOverlay.DrawString(i.ToString("X2"), f2, fontBrush, new Point((e.playerX & 0x1FF)-1, (e.playerY & 0x1FF)+1));
+                        
+                        if (e.selected == true)
+                        {
+                            graphicsOverlay.DrawString(i.ToString("X2") + " -> " + e.roomId, f2, fontBrush, new Point((e.playerX & 0x1FF) - 1, (e.playerY & 0x1FF) + 1));
+                        }
+                        else
+                        {
+                            graphicsOverlay.DrawString(i.ToString("X2"), f2, fontBrush, new Point((e.playerX & 0x1FF) - 1, (e.playerY & 0x1FF) + 1));
+                        }
                     }
-                    
+
                 }
 
             }
@@ -670,6 +736,7 @@ namespace ZeldaFullEditor
             Brush bgrBrush = Brushes.Red;
             Brush fontBrush = Brushes.Aqua;
             Pen contourPen = Pens.Black;
+            
             for (int i = 0; i < room.items.Count; i++)
             {
                 byte nid = room.items[i].id;
@@ -756,115 +823,118 @@ namespace ZeldaFullEditor
 
         public void drawOverlays()
         {
-            //overlayPointers
-            int addr = (Constants.overlayPointersBank << 16) +
-                (ROM.DATA[Constants.overlayPointers + (room.index * 2) + 1] << 8) +
-                ROM.DATA[Constants.overlayPointers + (room.index * 2)];
-            addr = Addresses.snestopc(addr);
-
-            int a = 0;
-            int x = 0;
-            int sta = 0;
-            //16-bit mode : 
-            //A9 (LDA #$)
-            //A2 (LDX #$)
-            //8D (STA $xxxx)
-            //9D (STA $xxxx ,x)
-            //8F (STA $xxxxxx)
-            //1A (INC A)
-            //4C (JMP)
-            //60 (END)
-
-            for(int i = 0;i<64;i++)
+            if (room.index < 0x80)
             {
-                for (int j = 0; j < 64; j++)
+                //overlayPointers
+                int addr = (Constants.overlayPointersBank << 16) +
+                    (ROM.DATA[Constants.overlayPointers + (room.index * 2) + 1] << 8) +
+                    ROM.DATA[Constants.overlayPointers + (room.index * 2)];
+                addr = Addresses.snestopc(addr);
+
+                int a = 0;
+                int x = 0;
+                int sta = 0;
+                //16-bit mode : 
+                //A9 (LDA #$)
+                //A2 (LDX #$)
+                //8D (STA $xxxx)
+                //9D (STA $xxxx ,x)
+                //8F (STA $xxxxxx)
+                //1A (INC A)
+                //4C (JMP)
+                //60 (END)
+
+                for (int i = 0; i < 64; i++)
                 {
-                    mapDataOverlay16[i, j] = 5000;
+                    for (int j = 0; j < 64; j++)
+                    {
+                        mapDataOverlay16[i, j] = 5000;
+                    }
                 }
-            }
 
 
-            byte b = 0;
-            while(b != 0x60)
-            {
-                b = ROM.DATA[addr];
-                if (b == 0xA9) //LDA #$xxxx (Increase addr+3)
+                byte b = 0;
+                while (b != 0x60)
                 {
-                    a = (ROM.DATA[addr + 2] << 8) +
-                    ROM.DATA[addr + 1];
-                    addr += 3;
-                    continue;
-                }
-                else if (b == 0xA2) //LDX #$xxxx (Increase addr+3)
-                {
-                    x = (ROM.DATA[addr + 2] << 8) +
-                    ROM.DATA[addr + 1];
-                    addr += 3;
-                    continue;
-                }
-                else if (b == 0x8D) //STA $xxxx (Increase addr+3)
-                {
-                    sta = (ROM.DATA[addr + 2] << 8) +
-                    ROM.DATA[addr + 1];
+                    b = ROM.DATA[addr];
+                    if (b == 0xA9) //LDA #$xxxx (Increase addr+3)
+                    {
+                        a = (ROM.DATA[addr + 2] << 8) +
+                        ROM.DATA[addr + 1];
+                        addr += 3;
+                        continue;
+                    }
+                    else if (b == 0xA2) //LDX #$xxxx (Increase addr+3)
+                    {
+                        x = (ROM.DATA[addr + 2] << 8) +
+                        ROM.DATA[addr + 1];
+                        addr += 3;
+                        continue;
+                    }
+                    else if (b == 0x8D) //STA $xxxx (Increase addr+3)
+                    {
+                        sta = (ROM.DATA[addr + 2] << 8) +
+                        ROM.DATA[addr + 1];
 
-                    //draw tile at sta position
-                    Console.WriteLine("Draw Tile" + a + " at " + sta.ToString("X4"));
-                    //64
-                    sta = sta  & 0x1FFF;
-                    int yp = ((sta / 2) / 0x40);
-                    int xp = (sta / 2) - (yp * 0x40);
-                    mapDataOverlay16[xp, yp] = (ushort)a;
+                        //draw tile at sta position
+                        Console.WriteLine("Draw Tile" + a + " at " + sta.ToString("X4"));
+                        //64
+                        sta = sta & 0x1FFF;
+                        int yp = ((sta / 2) / 0x40);
+                        int xp = (sta / 2) - (yp * 0x40);
+                        mapDataOverlay16[xp, yp] = (ushort)a;
 
-                    addr += 3;
-                    continue;
-                }
-                else if (b == 0x9D) //STA $xxxx, x (Increase addr+3)
-                {
-                    sta = (ROM.DATA[addr + 2] << 8) +
-                    ROM.DATA[addr + 1];
-                    //draw tile at sta,X position
-                    Console.WriteLine("Draw Tile" +a+" at " + (sta+x).ToString("X4"));
+                        addr += 3;
+                        continue;
+                    }
+                    else if (b == 0x9D) //STA $xxxx, x (Increase addr+3)
+                    {
+                        sta = (ROM.DATA[addr + 2] << 8) +
+                        ROM.DATA[addr + 1];
+                        //draw tile at sta,X position
+                        Console.WriteLine("Draw Tile" + a + " at " + (sta + x).ToString("X4"));
 
-                    int stax = (sta & 0x1FFF)+x;
-                    int yp = ((stax / 2) / 0x40);
-                    int xp = (stax / 2) - (yp * 0x40);
-                    mapDataOverlay16[xp, yp] = (ushort)a;
-                    
-                    addr += 3;
-                    continue;
-                }
-                else if (b == 0x8F) //STA $xxxxxx (Increase addr+4)
-                {
-                    sta = (ROM.DATA[addr + 2] << 8) +
-                    ROM.DATA[addr + 1];
-                    //draw tile at sta,X position
-                    Console.WriteLine("Draw Tile" + a + " at " + (sta + x).ToString("X4"));
+                        int stax = (sta & 0x1FFF) + x;
+                        int yp = ((stax / 2) / 0x40);
+                        int xp = (stax / 2) - (yp * 0x40);
+                        mapDataOverlay16[xp, yp] = (ushort)a;
 
-                    int stax = (sta & 0x1FFF) + x;
-                    int yp = ((stax / 2) / 0x40);
-                    int xp = (stax / 2) - (yp * 0x40);
-                    mapDataOverlay16[xp, yp] = (ushort)a;
+                        addr += 3;
+                        continue;
+                    }
+                    else if (b == 0x8F) //STA $xxxxxx (Increase addr+4)
+                    {
+                        sta = (ROM.DATA[addr + 2] << 8) +
+                        ROM.DATA[addr + 1];
+                        //draw tile at sta,X position
+                        Console.WriteLine("Draw Tile" + a + " at " + (sta + x).ToString("X4"));
 
-                    addr += 4;
-                    continue;
-                }
-                else if (b == 0x1A) //INC A (Increase addr+1)
-                {
-                    a += 1;
-                    addr += 1;
-                    continue;
-                }
-                else if (b == 0x4C) //JMP $xxxx (move addr to the new address)
-                {
-                    addr = (Constants.overlayPointersBank << 16) +
-                    (ROM.DATA[addr + 2] << 8) +
-                    ROM.DATA[addr + 1];
-                    addr = Addresses.snestopc(addr);
-                    continue;
-                }
-                else if (b == 0x60) //RTS
-                {
-                    break; //just to be sure
+                        int stax = (sta & 0x1FFF) + x;
+                        int yp = ((stax / 2) / 0x40);
+                        int xp = (stax / 2) - (yp * 0x40);
+                        mapDataOverlay16[xp, yp] = (ushort)a;
+
+                        addr += 4;
+                        continue;
+                    }
+                    else if (b == 0x1A) //INC A (Increase addr+1)
+                    {
+                        a += 1;
+                        addr += 1;
+                        continue;
+                    }
+                    else if (b == 0x4C) //JMP $xxxx (move addr to the new address)
+                    {
+                        addr = (Constants.overlayPointersBank << 16) +
+                        (ROM.DATA[addr + 2] << 8) +
+                        ROM.DATA[addr + 1];
+                        addr = Addresses.snestopc(addr);
+                        continue;
+                    }
+                    else if (b == 0x60) //RTS
+                    {
+                        break; //just to be sure
+                    }
                 }
             }
 
@@ -896,8 +966,8 @@ namespace ZeldaFullEditor
             this.nameText = nameText;
             this.mainform = mainform;
             GotFocus += DScene_GotFocus;
-
             FormClosing += DScene_FormClosing;
+            Console.WriteLine("Tab Created");
         }
 
         private void DScene_FormClosing(object sender, FormClosingEventArgs e)
@@ -908,11 +978,15 @@ namespace ZeldaFullEditor
             {
                 //prompt save message
                 //e.Cancel = true;
+                /*foreach(int r in scene.roomExits)
+                {
+                    OverworldGlobal.exits[r].playerX = 
+                }*/
                 DialogResult dialogResult = MessageBox.Show("Map has changed. Do you want to save changes?", "Save", MessageBoxButtons.YesNoCancel);
                 if (dialogResult == DialogResult.Yes) //save
                 {
                     scene.room.has_changed = false;
-                    mainform.all_rooms[scene.room.index] = (Room)scene.room.Clone();
+                    //mainform.all_rooms[scene.room.index] = (Room)scene.room.Clone();
 
                     mainform.maps.Remove(this);
                     mainform.loadRoomList(0);
@@ -979,6 +1053,8 @@ namespace ZeldaFullEditor
                 scene.room.sprite_palette = (byte)(ROM.DATA[Constants.overworldSpritePalette + scene.room.index]);
                 scene.need_refresh_gfx = true;
                 init = true;
+
+                Console.WriteLine("Focused!");
             }
             
 

@@ -12,7 +12,7 @@ namespace ZeldaFullEditor
         public byte x, y, id;
         public byte nx, ny;
         public bool selected = false;
-        public byte layer = 0;
+        public byte layer = 0;//Unused? - Yep used only as "mask"
         public bool bg2 = false;
         public PotItem(byte id, byte x, byte y,bool bg2)
         {

@@ -339,7 +339,7 @@ namespace ZeldaFullEditor
                 chestpicker.listView1.Items[i].ImageIndex = i;
                 chestpicker.chestItemsImagesList.Images.Add(GFX.chestitems_bitmap[i]);
             }
-            Console.WriteLine("???");
+            //Console.WriteLine("???");
             chestpicker.listView1.LargeImageList = chestpicker.chestItemsImagesList;
 
         }
@@ -420,7 +420,6 @@ namespace ZeldaFullEditor
                 int ry = dragy;
                 if (move_x < 0) { Math.Abs(rx = dragx + move_x); }
                 if (move_y < 0) { Math.Abs(ry = dragy + move_y); }
-
 
                 if (room.selectedObject.Count == 0)
                 {

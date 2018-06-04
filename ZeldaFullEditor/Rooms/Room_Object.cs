@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -29,9 +28,11 @@ namespace ZeldaFullEditor
         public Room room;
         public int drawYFix = 0;
         public ObjectOption options = 0;//
+        public bool selected = false;
+        //Draw Related
         public bool specialDraw = false;
         public bool checksize = false;
-        public bool selected = false;
+        
         public bool redraw = false;
         public Bitmap bitmap;
         public int width = 16;

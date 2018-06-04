@@ -29,6 +29,11 @@ namespace ZeldaFullEditor
                 b[1] += 0x80;
             }
             return BitConverter.ToInt32(b, 0);
+            //snes always have + 0x8000 no matter what, the bank on pc is always / 2
+
+
+
+            //return ((addr * 2) & 0xFF0000) + (addr & 0x7FFF) + 0x8000;
         }
 
         
