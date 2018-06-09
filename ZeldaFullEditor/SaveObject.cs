@@ -18,7 +18,6 @@ namespace ZeldaFullEditor
         public byte id { get; set; }
         public short tid { get; set; }
         public byte size { get; set; }
-        public ObjectOption options { get; set; }
 
         public Type type;
         public SaveObject(Sprite sprite) //Sprite Format
@@ -39,7 +38,6 @@ namespace ZeldaFullEditor
             this.tid = o.id;
             this.layer = o.layer;
             this.size = o.size;
-            this.options = o.options;
             type = typeof(Room_Object);
         }
 
@@ -61,7 +59,6 @@ namespace ZeldaFullEditor
                 bw.Write(y);
                 bw.Write(layer);
                 bw.Write(size);
-                bw.Write((byte)options);
             }
         }
 
@@ -73,7 +70,6 @@ namespace ZeldaFullEditor
             y = br.ReadByte();
             layer = br.ReadByte();
             size = br.ReadByte();
-            options = (ObjectOption)br.ReadByte();
             this.type = type;
         }
 

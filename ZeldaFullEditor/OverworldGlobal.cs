@@ -29,7 +29,6 @@ namespace ZeldaFullEditor
                 e[11] = (byte)((ROM.DATA[Constants.OWExitDoorType1+i]));
                 e[12] = (byte)((ROM.DATA[Constants.OWExitDoorType2+i]));
                 exits.Add(new ExitOW(e[0], (byte)e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8], (byte)e[9], (byte)e[10], (byte)e[11], (byte)e[12]));
-
             }
         }
 

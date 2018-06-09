@@ -75,12 +75,12 @@ namespace ZeldaFullEditor
                     {
                         bpp[i] = 2;
                         bufferBlock = new byte[0xC00];
-                        Console.WriteLine(tbufferBlock.Length);
+                        //Console.WriteLine(tbufferBlock.Length);
                         for (int j = 0; j < tbufferBlock.Length; j++)
                         {
                             bufferBlock[j] = tbufferBlock[j];
                         }
-                        Console.WriteLine("Buffer Size :" + tbufferBlock.Length.ToString("X4"));
+                        //Console.WriteLine("Buffer Size :" + tbufferBlock.Length.ToString("X4"));
                     }
 
                     for (int j = 0; j < bufferBlock.Length; j++)
@@ -418,7 +418,7 @@ namespace ZeldaFullEditor
 
             }
 
-            Console.WriteLine("Nbr of tiles32 = " + tiles32count);
+            //Console.WriteLine("Nbr of tiles32 = " + tiles32count);
            
         }
     }

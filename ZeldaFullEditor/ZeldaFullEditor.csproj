@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{A634564E-5323-48FE-A54C-B42AF25C5315}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ZeldaFullEditor</RootNamespace>
     <AssemblyName>ZeldaFullEditor</AssemblyName>
@@ -75,10 +75,6 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=3.0.3.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
-      <HintPath>..\packages\DockPanelSuite.3.0.3\lib\net40\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="ZCompressLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Downloads\ZCompressLibrary-master\ZCompressLibrary\bin\Debug\ZCompressLibrary.dll</HintPath>
@@ -87,68 +83,21 @@
   <ItemGroup>
     <Compile Include="Charactertable.cs" />
     <Compile Include="DataRoom.cs" />
-    <Compile Include="DoAction.cs" />
-    <Compile Include="DungeonGenerator.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="DungeonGenerator.Designer.cs">
-      <DependentUpon>DungeonGenerator.cs</DependentUpon>
-    </Compile>
     <Compile Include="Entrance.cs" />
     <Compile Include="EntranceOW.cs" />
     <Compile Include="ExitOW.cs" />
-    <Compile Include="GlobalOptionForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GlobalOptionForm.Designer.cs">
-      <DependentUpon>GlobalOptionForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Gui\AboutBox1.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Gui\AboutBox1.Designer.cs">
-      <DependentUpon>AboutBox1.cs</DependentUpon>
-    </Compile>
     <Compile Include="Addresses.cs" />
-    <Compile Include="Gui\PickObject.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Gui\PickObject.Designer.cs">
-      <DependentUpon>PickObject.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Gui\PickSprite.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Gui\PickSprite.Designer.cs">
-      <DependentUpon>PickSprite.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Gui\PickChestItem.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Gui\PickChestItem.Designer.cs">
-      <DependentUpon>PickChestItem.cs</DependentUpon>
-    </Compile>
     <Compile Include="IniFile.cs" />
-    <Compile Include="Load.cs" />
     <Compile Include="ObjectMode.cs" />
     <Compile Include="OverworldGlobal.cs" />
     <Compile Include="Palette.cs" />
     <Compile Include="PaletteViewer.cs" />
     <Compile Include="ROMStructure.cs" />
-    <Compile Include="RoomLayout.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="RoomLayout.Designer.cs">
-      <DependentUpon>RoomLayout.cs</DependentUpon>
-    </Compile>
-    <Compile Include="RoomOW.cs" />
-    <Compile Include="Rooms\Background2.cs" />
     <Compile Include="Rooms\Chests\Chest.cs" />
     <Compile Include="Rooms\Chests\ChestItems_Name.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Compression.cs" />
     <Compile Include="Rooms\Items\Items_Draw.cs" />
-    <Compile Include="Rooms\Object_Draw\Doors_Draw.cs" />
     <Compile Include="Gui\Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -156,12 +105,6 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="GFX.cs" />
-    <Compile Include="Gui\GotoRoom.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Gui\GotoRoom.Designer.cs">
-      <DependentUpon>GotoRoom.cs</DependentUpon>
-    </Compile>
     <Compile Include="PotItems_Name.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -169,22 +112,10 @@
     <Compile Include="Rooms\Room.cs" />
     <Compile Include="Rooms\Room_Name.cs" />
     <Compile Include="Rooms\Sprites\Sprites_Names.cs" />
-    <Compile Include="Rooms\Object_Draw\Subtype1_Draw.cs" />
-    <Compile Include="Rooms\Object_Draw\Subtype2_Multiple.cs" />
     <Compile Include="Rooms\Room_Object.cs" />
-    <Compile Include="Rooms\Object_Draw\Subtype3_Draw.cs" />
     <Compile Include="Rooms\Sprites\Sprite.cs" />
     <Compile Include="Save.cs" />
     <Compile Include="SaveObject.cs" />
-    <Compile Include="SceneUW.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="SceneBase.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="SceneOW.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Sprite_SubsetNames.cs" />
     <Compile Include="TagKey.cs" />
     <Compile Include="TextData.cs" />
@@ -195,29 +126,8 @@
     <Compile Include="Tile16.cs" />
     <Compile Include="Tile32.cs" />
     <Compile Include="TileInfo.cs" />
-    <EmbeddedResource Include="DungeonGenerator.resx">
-      <DependentUpon>DungeonGenerator.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="GlobalOptionForm.resx">
-      <DependentUpon>GlobalOptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Gui\AboutBox1.resx">
-      <DependentUpon>AboutBox1.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Gui\Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Gui\GotoRoom.resx">
-      <DependentUpon>GotoRoom.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Gui\PickObject.resx">
-      <DependentUpon>PickObject.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Gui\PickSprite.resx">
-      <DependentUpon>PickSprite.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Gui\PickChestItem.resx">
-      <DependentUpon>PickChestItem.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -229,15 +139,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="RoomLayout.resx">
-      <DependentUpon>RoomLayout.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SceneOW.resx">
-      <DependentUpon>SceneOW.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SceneUW.resx">
-      <DependentUpon>SceneUW.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="TextPreview.resx">
       <DependentUpon>TextPreview.cs</DependentUpon>
     </EmbeddedResource>

@@ -190,7 +190,7 @@ namespace ZeldaFullEditor
                     }
                     else
                     {
-                        Console.WriteLine(byteRead.ToString("X2"));
+                        //Console.WriteLine(byteRead.ToString("X2"));
                         break;
                     }
                     byteRead = ROM.DATA[pos];
