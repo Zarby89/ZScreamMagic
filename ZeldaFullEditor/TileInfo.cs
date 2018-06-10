@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ZeldaFullEditor
 {
-    public class TileInfo
+    public struct TileInfo
     {
         public bool o, v, h; //o = over, v = vertical mirror, h = horizontal mirror
         public byte palette;

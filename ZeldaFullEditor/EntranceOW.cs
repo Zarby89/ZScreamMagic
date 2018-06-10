@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace ZeldaFullEditor
 {
-    public class EntranceOW
+    public struct EntranceOW
     {
-        public short mapPos = 0;
-        public short mapId = 0;
-        public short entranceId = 0;
-        public bool selected = false;
+        public short mapPos;
+        public short mapId;
+        public byte entranceId;
         public EntranceOW(short mapId, short mapPos, byte entranceId)
         {
             this.mapPos = mapPos;

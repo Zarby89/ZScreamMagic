@@ -35,7 +35,7 @@
             this.loadProjectToROMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label1 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.logTextbox = new System.Windows.Forms.RichTextBox();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -92,14 +92,14 @@
             this.button1.Text = "Clear Logs";
             this.button1.UseVisualStyleBackColor = true;
             // 
-            // richTextBox1
+            // logTextbox
             // 
-            this.richTextBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.richTextBox1.Location = new System.Drawing.Point(0, 37);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(416, 224);
-            this.richTextBox1.TabIndex = 3;
-            this.richTextBox1.Text = "";
+            this.logTextbox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.logTextbox.Location = new System.Drawing.Point(0, 37);
+            this.logTextbox.Name = "logTextbox";
+            this.logTextbox.Size = new System.Drawing.Size(416, 224);
+            this.logTextbox.TabIndex = 3;
+            this.logTextbox.Text = "";
             // 
             // progressBar1
             // 
@@ -117,7 +117,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(416, 307);
-            this.Controls.Add(this.richTextBox1);
+            this.Controls.Add(this.logTextbox);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.progressBar1);
@@ -143,7 +143,7 @@
         private System.Windows.Forms.ToolStripMenuItem loadProjectToROMToolStripMenuItem;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.RichTextBox logTextbox;
         private System.Windows.Forms.ProgressBar progressBar1;
     }
 }

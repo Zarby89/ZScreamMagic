@@ -17,14 +17,11 @@ using ZeldaFullEditor.Properties;
 
 namespace ZeldaFullEditor
 {
-    [Serializable]
-    public class Room : ICloneable
+
+    public class RoomSave
     {
-        //List<SpriteName> stringtodraw = new List<SpriteName>();
+        private int header_location;
         public int index;
-        int header_location;
-        public bool has_changed = false;
-        public string name;
         public byte layout;
         public byte floor1;
         public byte floor2;
@@ -34,45 +31,60 @@ namespace ZeldaFullEditor
         public byte collision; //Need a better name for that
         public byte bg2;
         public byte effect;
-        public TagKey tag1;
-        public TagKey tag2;
+        public byte tag1;
+        public byte tag2;
         public byte holewarp;
         public byte holewarp_plane;
-        public byte[] staircase_rooms = new byte[4];
-        public byte[] staircase_plane = new byte[4];
+        public byte[] staircase_rooms;
+        public byte[] staircase_plane;
         public bool light;
         public short messageid;
         public bool damagepit;
-
-        public List<Chest> chest_list = new List<Chest>();
-        public List<Room_Object> tilesObjects = new List<Room_Object>();
-        public List<Room_Object> tilesLayoutObjects = new List<Room_Object>();
-        public List<Sprite> sprites = new List<Sprite>();
-        public List<PotItem> pot_items = new List<PotItem>();
-        public bool sortSprites = false;
-
-        public Room(int index)
+        public List<Room_Blocks> blocks;
+        public List<Room_Torches> torches;
+        public List<DoorSave> doors;
+        public List<ChestData> chest_list;
+        public List<Room_Object> tilesObjects;
+        public List<Room_Sprite> sprites;
+        public List<roomPotSave> pot_items;
+        public bool sortSprites;
+        public string name;
+        public RoomSave(short roomId)
         {
-            this.index = index;
+            staircase_rooms = new byte[4];
+            staircase_plane = new byte[4];
+            blocks = new List<Room_Blocks>();
+            torches = new List<Room_Torches>();
+            doors = new List<DoorSave>();
+            chest_list = new List<ChestData>();
+            tilesObjects = new List<Room_Object>();
+            sprites = new List<Room_Sprite>();
+            pot_items = new List<roomPotSave>();
+            sortSprites = false;
+            index = roomId;
+            this.name = ROMStructure.roomsNames[index];
+            messageid = (short)((ROM.DATA[Constants.messages_id_dungeon + (index * 2) + 1] << 8) + ROM.DATA[Constants.messages_id_dungeon + (index * 2)]);
+
+            
             loadHeader();
             loadTilesObjects();
             addSprites();
-            addBlocks(); 
-            addTorches(); 
+            addBlocks();
+            addTorches();
             addPotsItems();
             isdamagePit();
-            this.name = ROMStructure.roomsNames[index];
-            messageid = (short)((ROM.DATA[Constants.messages_id_dungeon + (index * 2) + 1] << 8 ) + ROM.DATA[Constants.messages_id_dungeon + (index * 2)]);
+
         }
+
 
         public void isdamagePit()
         {
             int pitCount = (ROM.DATA[Constants.pit_count] / 2);
-            int pitPointer = (ROM.DATA[Constants.pit_pointer+2] << 16)+ (ROM.DATA[Constants.pit_pointer + 1] << 8)+ (ROM.DATA[Constants.pit_pointer]);
+            int pitPointer = (ROM.DATA[Constants.pit_pointer + 2] << 16) + (ROM.DATA[Constants.pit_pointer + 1] << 8) + (ROM.DATA[Constants.pit_pointer]);
             pitPointer = Addresses.snestopc(pitPointer);
-            for(int i = 0;i<pitCount;i++)
+            for (int i = 0; i < pitCount; i++)
             {
-                if (((ROM.DATA[pitPointer+1 + (i*2)] << 8) + (ROM.DATA[pitPointer+(i*2)])) == index)
+                if (((ROM.DATA[pitPointer + 1 + (i * 2)] << 8) + (ROM.DATA[pitPointer + (i * 2)])) == index)
                 {
                     damagepit = true;
                     return;
@@ -84,7 +96,7 @@ namespace ZeldaFullEditor
         {
             int spritePointer = (04 << 16) + (ROM.DATA[Constants.rooms_sprite_pointer + 1] << 8) + (ROM.DATA[Constants.rooms_sprite_pointer]);
             //09 bank ? Need to check if HM change that
-            int sprite_address_snes = (09 << 16) + 
+            int sprite_address_snes = (09 << 16) +
             (ROM.DATA[spritePointer + (index * 2) + 1] << 8) +
             ROM.DATA[spritePointer + (index * 2)];
             int sprite_address = Addresses.snestopc(sprite_address_snes);
@@ -98,13 +110,13 @@ namespace ZeldaFullEditor
 
 
                 if (b1 == 0xFF) { break; }
+                Room_Sprite s = new Room_Sprite(b3, (byte)(b2 & 0x1F), (byte)(b1 & 0x1F), Sprites_Names.name[b3], (byte)((b2 & 0xE0) >> 5), (byte)((b1 & 0x60) >> 5), (byte)((b1 & 0x80) >> 7), 0);
+                sprites.Add(s);
 
-                sprites.Add(new Sprite(this, b3, (byte)(b2 & 0x1F), (byte)(b1 & 0x1F), Sprites_Names.name[b3], (byte)((b2 & 0xE0) >> 5), (byte)((b1 & 0x60) >> 5), (byte)((b1 & 0x80) >> 7)));
-                
                 if (sprites.Count > 1)
                 {
-                    Sprite spr = sprites[sprites.Count - 1];
-                    Sprite prevSprite = sprites[sprites.Count - 2];
+                    Room_Sprite spr = sprites[sprites.Count - 1];
+                    Room_Sprite prevSprite = sprites[sprites.Count - 2];
                     if (spr.id == 0xE4 && spr.x == 0x00 && spr.y == 0x1E && spr.layer == 1 && ((spr.subtype << 3) + spr.overlord) == 0x18)
                     {
                         if (prevSprite != null)
@@ -157,36 +169,31 @@ namespace ZeldaFullEditor
         public void addBlocks()
         {
             //288
-            
-            int blocksCount = (short)((ROM.DATA[Constants.blocks_length+1]<<8) + ROM.DATA[Constants.blocks_length]);
+
+            int blocksCount = (short)((ROM.DATA[Constants.blocks_length + 1] << 8) + ROM.DATA[Constants.blocks_length]);
             byte[] blocksdata = new byte[blocksCount];
             //int blocksCount = (short)((ROM.DATA[Constants.blocks_length + 1] << 8) + ROM.DATA[Constants.blocks_length]);
             addlistBlock(ref blocksdata, blocksCount);
-            for (int i = 0;i< blocksCount; i+=4)
+            for (int i = 0; i < blocksCount; i += 4)
             {
                 byte b1 = blocksdata[i];
-                byte b2 = blocksdata[i+1];
-                byte b3 = blocksdata[i+2];
-                byte b4 = blocksdata[i+3];
+                byte b2 = blocksdata[i + 1];
+                byte b3 = blocksdata[i + 2];
+                byte b4 = blocksdata[i + 3];
                 if (((b2 << 8) + b1) == index)
                 {
                     if (b3 == 0xFF && b4 == 0xFF) { break; }
                     int address = ((b4 & 0x1F) << 8 | b3) >> 1;
                     int px = address % 64;
                     int py = address >> 6;
-                    Room_Object r = addObject(0x0E00, (byte)(px), (byte)(py), 0, (byte)((b4 & 0x20) >> 5));
-                    
-                    if (r != null)
-                    {
-                        tilesObjects.Add(r);
-                    }
+                    blocks.Add(new Room_Blocks(0x0E00, (byte)(px), (byte)(py), 0, (byte)((b4 & 0x20) >> 5)));
                 }
             }
         }
         public void addTorches()
         {
             int bytes_count = (ROM.DATA[Constants.torches_length_pointer + 1] << 8) + ROM.DATA[Constants.torches_length_pointer];
-           
+
             for (int i = 0; i < bytes_count; i += 2)
             {
                 byte b1 = ROM.DATA[Constants.torch_data + i];
@@ -197,7 +204,7 @@ namespace ZeldaFullEditor
                     i += 2;
                     while (true)
                     {
-                       
+
                         b1 = ROM.DATA[Constants.torch_data + i];
                         b2 = ROM.DATA[Constants.torch_data + i + 1];
 
@@ -206,11 +213,8 @@ namespace ZeldaFullEditor
                         int px = address % 64;
                         int py = address >> 6;
 
-                        Room_Object r = addObject(0x150, (byte)px, (byte)py, 0, (byte)((b2 & 0x20) >> 5));
-                        if (r != null)
-                        {
-                            tilesObjects.Add(r);
-                        }
+
+                        torches.Add(new Room_Torches(0x150, (byte)px, (byte)py, 0, (byte)((b2 & 0x20) >> 5)));
                         //tilesObjects[tilesObjects.Count - 1].is_torch = true;
                         i += 2;
                     }
@@ -231,7 +235,6 @@ namespace ZeldaFullEditor
 
         public void addPotsItems()
         {
-            //WTF is that (01 << 16) ?? this is the bank -_-
             int item_address_snes = (01 << 16) +
             (ROM.DATA[Constants.room_items_pointers + (index * 2) + 1] << 8) +
             ROM.DATA[Constants.room_items_pointers + (index * 2)];
@@ -243,28 +246,20 @@ namespace ZeldaFullEditor
                 byte b2 = ROM.DATA[item_address + 1];
                 byte b3 = ROM.DATA[item_address + 2];
                 //0x20 = bg2
-                
+
                 if (b1 == 0xFF && b2 == 0xFF) { break; }
                 int address = ((b2 & 0x1F) << 8 | b1) >> 1;
                 int px = address % 64;
                 int py = address >> 6;
-                PotItem p = new PotItem(b3, (byte)((px)), (byte)((py)), (b2 & 0x20) == 0x20 ? true : false);
-                if (p.bg2 == true)
-                {
-                    p.layer = 1;
-                }
-                else
-                {
-                    p.layer = 0;
-                }
+                roomPotSave p = new roomPotSave(b3, (byte)((px)), (byte)((py)), (b2 & 0x20) == 0x20 ? true : false);
                 pot_items.Add(p);
-                
+
 
                 //bit 7 is set if the object is a special object holes, switches
                 //after 0x16 it goes to 0x80
 
-                item_address += 3; 
-                }
+                item_address += 3;
+            }
         }
 
         public void loadChests(ref List<ChestData> chests_in_room)
@@ -386,18 +381,15 @@ namespace ZeldaFullEditor
                         posY = (byte)(((b2 & 0x0F) << 2) + ((b3 & 0xC0) >> 6));
                         sizeXY = 0;
                     }
-                    Room_Object r = addObject(oid, posX, posY, sizeXY, (byte)layer);
-                    if (r != null)
-                    {
-                        tilesObjects.Add(r);
-                    }
+
+                    tilesObjects.Add(new Room_Object(oid, posX, posY, sizeXY, (byte)layer));
 
                     //IF Object is a chest loaded and there's object in the list chest
                     if (oid == 0xF99)
                     {
                         if (chests_in_room.Count > 0)
                         {
-                            chest_list.Add(new Chest(posX, posY, chests_in_room[0].itemIn, false));
+                            chest_list.Add(new ChestData(chests_in_room[0].itemIn, false));
                             chests_in_room.RemoveAt(0);
                         }
                     }
@@ -405,7 +397,7 @@ namespace ZeldaFullEditor
                     {
                         if (chests_in_room.Count > 0)
                         {
-                            chest_list.Add(new Chest((byte)(posX + 1), posY, chests_in_room[0].itemIn, true));
+                            chest_list.Add(new ChestData(chests_in_room[0].itemIn, true));
                             chests_in_room.RemoveAt(0);
                         }
                     }
@@ -414,8 +406,7 @@ namespace ZeldaFullEditor
                 }
                 else
                 {
-
-                    tilesObjects.Add(new object_door((short)((b2 << 8) + b1), 0, 0, 0, (byte)layer));
+                    doors.Add(new DoorSave((short)((b2 << 8) + b1)));
                     continue;
                 }
 
@@ -437,8 +428,8 @@ namespace ZeldaFullEditor
             int headerPointer = (ROM.DATA[Constants.room_header_pointer + 2] << 16) + (ROM.DATA[Constants.room_header_pointer + 1] << 8) + (ROM.DATA[Constants.room_header_pointer]);
             headerPointer = Addresses.snestopc(headerPointer);
             int address = (ROM.DATA[Constants.room_header_pointers_bank] << 16) +
-                            (ROM.DATA[(headerPointer + 1)+ (index * 2)] << 8) +
-                            ROM.DATA[(headerPointer) + (index*2)];
+                            (ROM.DATA[(headerPointer + 1) + (index * 2)] << 8) +
+                            ROM.DATA[(headerPointer) + (index * 2)];
 
             header_location = Addresses.snestopc(address);
 
@@ -454,14 +445,14 @@ namespace ZeldaFullEditor
             blockset = (byte)((ROM.DATA[header_location + 2]));
             spriteset = (byte)((ROM.DATA[header_location + 3]));
             effect = (byte)((ROM.DATA[header_location + 4]));
-            tag1 = (TagKey)((ROM.DATA[header_location + 5]));
-            tag2 = (TagKey)((ROM.DATA[header_location + 6]));
+            tag1 = (byte)((ROM.DATA[header_location + 5]));
+            tag2 = (byte)((ROM.DATA[header_location + 6]));
 
             holewarp_plane = (byte)((ROM.DATA[header_location + 7]) & 0x03);
-            staircase_plane[0] = (byte)((ROM.DATA[header_location + 7]>>2) & 0x03);
-            staircase_plane[1] = (byte)((ROM.DATA[header_location + 7]>>4) & 0x03);
-            staircase_plane[2] = (byte)((ROM.DATA[header_location + 7]>>6) & 0x03);
-            staircase_plane[3] = (byte)((ROM.DATA[header_location + 8]) & 0x03 );
+            staircase_plane[0] = (byte)((ROM.DATA[header_location + 7] >> 2) & 0x03);
+            staircase_plane[1] = (byte)((ROM.DATA[header_location + 7] >> 4) & 0x03);
+            staircase_plane[2] = (byte)((ROM.DATA[header_location + 7] >> 6) & 0x03);
+            staircase_plane[3] = (byte)((ROM.DATA[header_location + 8]) & 0x03);
 
             holewarp = (byte)((ROM.DATA[header_location + 9]));
             staircase_rooms[0] = (byte)((ROM.DATA[header_location + 10]));
@@ -470,57 +461,10 @@ namespace ZeldaFullEditor
             staircase_rooms[3] = (byte)((ROM.DATA[header_location + 13]));
         }
 
-        public object Clone()
-        {
-            using (var ms = new MemoryStream())
-            {
-                var formatter = new BinaryFormatter();
-                formatter.Serialize(ms, this);
-                ms.Position = 0;
 
-                return (Room)formatter.Deserialize(ms);
-            }
-        }
     }
 
-    [Serializable]
-    public class SpriteName
-    {
-        public int x;
-        public int y;
-        public string name;
-        public SpriteName(int x,int y,string name)
-        {
-            this.x = x;
-            this.y = y;
-            this.name = name;
-        }
-    }
 
-    [Serializable]
-    public class StaircaseRoom
-    {
-        public int x;
-        public int y;
-        public string name;
-        public StaircaseRoom(int x, int y,string name)
-        {
-            this.x = x;
-            this.y = y;
-            this.name = name;
-        }
-    }
-    [Serializable]
-    public class ChestData
-    {
-        public bool bigChest = false;
-        public byte itemIn = 0;
-        public ChestData(byte itemIn, bool bigChest)
-        {
-            this.itemIn = itemIn;
-            this.bigChest = bigChest;
-        }
-    }
 
 
 }

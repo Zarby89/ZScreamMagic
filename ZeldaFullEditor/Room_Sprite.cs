@@ -1,16 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace ZeldaFullEditor
 {
-    [Serializable]
-  public static class Sprites_Names
-  {
+    public class Room_Sprite
+    {
+        public byte x, y, id;
+        public byte layer;
+        public byte subtype;
+        public byte overlord;
+        public string name;
+        public byte keyDrop;
 
-    static public string[] name = new string[] {
+        public Room_Sprite(byte id, byte x, byte y, string name, byte overlord, byte subtype, byte layer,byte keyDrop)
+        {
+            this.id = id;
+            this.x = x;
+            this.y = y;
+            this.name = name;
+            this.overlord = overlord;
+            this.subtype = subtype;
+            this.layer = layer;
+            this.keyDrop = keyDrop; //need to be setted after the creation so must be a class?
+        }
+
+
+    }
+
+
+    public static class Sprites_Names
+    {
+
+        static public string[] name = new string[] {
 "00 Raven",
 "01 Vulture",
 "02 Flying Stalfos Head",
@@ -268,5 +287,5 @@ namespace ZeldaFullEditor
 "FE",
 "FF",
       };
-}
+    }
 }

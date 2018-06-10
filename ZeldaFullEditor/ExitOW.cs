@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace ZeldaFullEditor
 {
-    public class ExitOW
+    public struct ExitOW
     {
 
-        public short roomId = 0;
-        public byte mapId = 0;
-        public short vramLocation = 0;
+        public short roomId;
+        public byte mapId;
+        public short vramLocation;
         public short xScroll;
         public short yScroll;
         public short playerX;
@@ -22,7 +22,6 @@ namespace ZeldaFullEditor
         public byte unk2;
         public byte doorType1;
         public byte doorType2;
-        public bool selected = false;
         public ExitOW(short roomId,byte mapId,short vramLocation, short yScroll,short xScroll,short playerY, short playerX,short cameraY, short cameraX, byte unk1,byte unk2,byte doorType1,byte doorType2)
         {
             this.roomId = roomId;

@@ -12,23 +12,23 @@ using System.Drawing.Imaging;
 
 namespace ZeldaFullEditor
 {
-    class Save
+    class SaveJson
     {
 
         //ROM.DATA is a base rom loaded to get basic information it can either be JP1.0 or US1.2
         //can still use it for load but must not be used 
-        public int newHeaderPos = 0x122000;
-        Room[] all_rooms;
+        RoomSave[] all_rooms;
         MapSave[] all_maps;
         Entrance[] entrances;
         string[] texts;
-        string debugstring = "";
-        public Save(Room[] all_rooms, MapSave[] all_maps, Entrance[] entrances, string[] texts)
+        Overworld overworld;
+        public SaveJson(RoomSave[] all_rooms, MapSave[] all_maps, Entrance[] entrances, string[] texts,Overworld overworld)
         {
             this.all_rooms = all_rooms;
             this.all_maps = all_maps;
             this.entrances = entrances;
             this.texts = texts;
+            this.overworld = overworld;
             //TODO : Change Header location to be dynamic instead of static
 
             if (!Directory.Exists("ProjectDirectory"))
@@ -38,8 +38,13 @@ namespace ZeldaFullEditor
             //ZipArchive zipfile = new ZipArchive(new FileStream("PROJECTFILE.zip", FileMode.Open), ZipArchiveMode.Create);
             File.WriteAllText("ProjectDirectory//Main.cfg", writeProjectConfig());
             writeRooms("ProjectDirectory//");
+            writeEntrances("ProjectDirectory//");
+            writeOverworldEntrances("ProjectDirectory//");
+            writeOverworldExits("ProjectDirectory//");
+            writeOverworldHoles("ProjectDirectory//");
             writeText("ProjectDirectory//");
             writePalettes("ProjectDirectory//");
+
             writeGfx("ProjectDirectory//");
             writeOverworldTiles16("ProjectDirectory//");
             writeOverworldMaps("ProjectDirectory//");
@@ -89,7 +94,81 @@ namespace ZeldaFullEditor
             {
                 Directory.CreateDirectory(path + "Overworld");
             }
-            File.WriteAllText(path + "Overworld//Tiles16.json", JsonConvert.SerializeObject(GFX.tiles16));
+            File.WriteAllText(path + "Overworld//Tiles16.json", JsonConvert.SerializeObject(overworld.tiles16));
+        }
+
+        public void writeOverworldHoles(string path)
+        {
+            if (!Directory.Exists(path + "Overworld"))
+            {
+                Directory.CreateDirectory(path + "Overworld");
+            }
+            if (!Directory.Exists(path + "Overworld//Holes"))
+            {
+                Directory.CreateDirectory(path + "Overworld//Holes");
+            }
+            for (int i = 0; i < 0x13; i++)
+            {
+            short mapId = (short)((ROM.DATA[Constants.OWHoleArea + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWHoleArea + (i * 2)]));
+            short mapPos = (short)((ROM.DATA[Constants.OWHolePos + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWHolePos + (i * 2)]));
+            byte entranceId = (byte)((ROM.DATA[Constants.OWHoleEntrance + i]));
+            EntranceOW eo = new EntranceOW(mapId, mapPos, entranceId);
+
+            File.WriteAllText(path + "Overworld//Holes//Hole" + i.ToString("D3") + ".json", JsonConvert.SerializeObject(eo));
+            }
+        }
+
+
+
+        public void writeOverworldEntrances(string path)
+        {
+            if (!Directory.Exists(path + "Overworld"))
+            {
+                Directory.CreateDirectory(path + "Overworld");
+            }
+            if (!Directory.Exists(path + "Overworld//Entrances"))
+            {
+                Directory.CreateDirectory(path + "Overworld//Entrances");
+            }
+            for (int i = 0; i < 129; i++)
+            {
+                short mapId = (short)((ROM.DATA[Constants.OWEntranceMap + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWEntranceMap + (i * 2)]));
+                short mapPos = (short)((ROM.DATA[Constants.OWEntrancePos + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWEntrancePos + (i * 2)]));
+                byte entranceId = (byte)((ROM.DATA[Constants.OWEntranceEntranceId + i]));
+                EntranceOW eo = new EntranceOW(mapId,mapPos,entranceId);
+                File.WriteAllText(path + "Overworld//Entrances//Entrance" + i.ToString("D3") + ".json", JsonConvert.SerializeObject(eo));
+            }
+        }
+
+        public void writeOverworldExits(string path)
+        {
+            if (!Directory.Exists(path + "Overworld"))
+            {
+                Directory.CreateDirectory(path + "Overworld");
+            }
+            if (!Directory.Exists(path + "Overworld//Exits"))
+            {
+                Directory.CreateDirectory(path + "Overworld//Exits");
+            }
+            for (int i = 0; i < 0x4F; i++)
+            {
+                short[] e = new short[13];
+                e[0] = (short)((ROM.DATA[Constants.OWExitRoomId + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWExitRoomId + (i * 2)]));
+                e[1] = (byte)((ROM.DATA[Constants.OWExitMapId + i]));
+                e[2] = (short)((ROM.DATA[Constants.OWExitVram + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWExitVram + (i * 2)]));
+                e[3] = (short)((ROM.DATA[Constants.OWExitYScroll + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWExitYScroll + (i * 2)]));
+                e[4] = (short)((ROM.DATA[Constants.OWExitXScroll + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWExitXScroll + (i * 2)]));
+                e[5] = (short)((ROM.DATA[Constants.OWExitYPlayer + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWExitYPlayer + (i * 2)]));
+                e[6] = (short)((ROM.DATA[Constants.OWExitXPlayer + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWExitXPlayer + (i * 2)]));
+                e[7] = (short)((ROM.DATA[Constants.OWExitYCamera + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWExitYCamera + (i * 2)]));
+                e[8] = (short)((ROM.DATA[Constants.OWExitXCamera + (i * 2) + 1] << 8) + (ROM.DATA[Constants.OWExitXCamera + (i * 2)]));
+                e[9] = (byte)((ROM.DATA[Constants.OWExitUnk1 + i]));
+                e[10] = (byte)((ROM.DATA[Constants.OWExitUnk2 + i]));
+                e[11] = (byte)((ROM.DATA[Constants.OWExitDoorType1 + i]));
+                e[12] = (byte)((ROM.DATA[Constants.OWExitDoorType2 + i]));
+                ExitOW eo = (new ExitOW(e[0], (byte)e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8], (byte)e[9], (byte)e[10], (byte)e[11], (byte)e[12]));
+            File.WriteAllText(path + "Overworld//Exits//Exit" + i.ToString("D3") + ".json", JsonConvert.SerializeObject(eo));
+            }
         }
 
         public void writeOverworldMaps(string path)
@@ -104,7 +183,7 @@ namespace ZeldaFullEditor
             }
             for (int i = 0; i < 158; i++)
             {
-                
+
                 File.WriteAllText(path + "Overworld//Maps//Map" + i.ToString("D3") + ".json", JsonConvert.SerializeObject(all_maps[i]));
             }
         }
@@ -276,16 +355,57 @@ namespace ZeldaFullEditor
             return JsonConvert.SerializeObject(cs);
         }
 
+        public void writeEntrances(string path)
+        {
+            if (!Directory.Exists(path + "Dungeons"))
+            {
+                Directory.CreateDirectory(path + "Dungeons");
+            }
+            if (!Directory.Exists(path + "Dungeons//Entrances"))
+            {
+                Directory.CreateDirectory(path + "Dungeons//Entrances");
+            }
+            if (!Directory.Exists(path + "Dungeons//StartingEntrances"))
+            {
+                Directory.CreateDirectory(path + "Dungeons//StartingEntrances");
+            }
+
+            for (int i = 0; i < 133; i++)
+            {
+                Entrance e = new Entrance((byte)i);
+                File.WriteAllText(path + "Dungeons//Entrances//Entrance " + i.ToString("D3") + ".json", JsonConvert.SerializeObject(e, Formatting.None, new JsonSerializerSettings()
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                }));
+
+            }
+            for (int i = 0; i < 7; i++)
+            {
+                Entrance e = new Entrance((byte)i,true);
+                File.WriteAllText(path + "Dungeons//StartingEntrances//Entrance " + i.ToString("D3") + ".json", JsonConvert.SerializeObject(e, Formatting.None, new JsonSerializerSettings()
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                }));
+
+            }
+
+
+        }
+
         public void writeRooms(string path)
         {
-            if (!Directory.Exists(path + "Rooms"))
+            if (!Directory.Exists(path + "Dungeons"))
             {
-                Directory.CreateDirectory(path + "Rooms");
+                Directory.CreateDirectory(path + "Dungeons");
+            }
+            if (!Directory.Exists(path + "Dungeons//Rooms"))
+            {
+                Directory.CreateDirectory(path + "Dungeons//Rooms");
             }
             for (int i = 0; i < 296; i++)
             {
-                roomSave rs = new roomSave((short)i, all_rooms);
-                File.WriteAllText(path + "Rooms//Room " + i.ToString("D3") + ".json", JsonConvert.SerializeObject(rs, Formatting.None, new JsonSerializerSettings()
+                RoomSave rs = new RoomSave((short)i);
+                File.WriteAllText(path + "Dungeons//Rooms//Room " + i.ToString("D3") + ".json", JsonConvert.SerializeObject(rs, Formatting.None, new JsonSerializerSettings()
                 {
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore
                 }));
@@ -298,29 +418,6 @@ namespace ZeldaFullEditor
             int p = (ROM.DATA[pos + 2] << 16) + (ROM.DATA[pos + 1] << 8) + (ROM.DATA[pos]);
             return (Addresses.snestopc(p));
         }
-    }
-
-    public class roomSpriteSave
-    {
-        public byte x, y, id;
-        public byte layer = 0;
-        public byte subtype = 0;
-        public byte overlord = 0;
-        public string name;
-        public byte keyDrop = 0;
-
-        public roomSpriteSave(Sprite o)
-        {
-            x = o.x;
-            y = o.y;
-            id = o.id;
-            layer = o.layer;
-            subtype = o.subtype;
-            overlord = o.overlord;
-            name = o.name;
-            keyDrop = o.keyDrop;
-        }
-
     }
 
     public class TextSave
@@ -339,133 +436,15 @@ namespace ZeldaFullEditor
     {
         public byte x, y, id;
         public bool bg2 = false;
-
-        public roomPotSave(PotItem o)
+        public roomPotSave(byte id, byte x, byte y, bool bg2)
         {
-            this.x = o.x;
-            this.y = o.y;
-            this.id = o.id;
-            this.bg2 = o.bg2;
+            this.id = id;
+            this.x = x;
+            this.y = y;
+            this.bg2 = bg2;
         }
     }
 
-    public class roomObjectSave
-    {
-        public byte x, y;
-        public byte size;
-        public byte layer = 0;
-        public short id;
-
-        public roomObjectSave(Room_Object o)
-        {
-            this.x = o.x;
-            this.y = o.y;
-            this.size = o.size;
-            this.id = o.id;
-            this.layer = o.layer;
-        }
-
-    }
-
-    public class doorSave
-    {
-        public byte door_pos = 0;
-        public byte door_dir = 0;
-        public byte door_type = 0;
-
-        public doorSave(byte pos, byte dir, byte type)
-        {
-            this.door_pos = pos;
-            this.door_dir = dir;
-            this.door_type = type;
-        }
-    }
-
-
-    public class roomSave
-    {
-        public int index;
-        public byte layout;
-        public byte floor1;
-        public byte floor2;
-        public byte blockset;
-        public byte spriteset;
-        public byte palette;
-        public byte collision; //Need a better name for that
-        public byte bg2;
-        public byte effect;
-        public TagKey tag1;
-        public TagKey tag2;
-        public byte holewarp;
-        public byte holewarp_plane;
-        public byte[] staircase_rooms = new byte[4];
-        public byte[] staircase_plane = new byte[4];
-        public bool light;
-        public short messageid;
-        public bool damagepit;
-        public List<roomObjectSave> blocks = new List<roomObjectSave>();//BLOCKS THIS IS NOT THE SAME AS ROOM 
-        public List<roomObjectSave> torches = new List<roomObjectSave>();
-        public List<doorSave> doors = new List<doorSave>();
-        public List<Chest> chest_list = new List<Chest>();
-        public List<roomObjectSave> tilesObjects = new List<roomObjectSave>();
-        public List<roomSpriteSave> sprites = new List<roomSpriteSave>();
-        public List<roomPotSave> pot_items = new List<roomPotSave>();
-        public bool sortSprites = false;
-
-        public roomSave(short roomId, Room[] allrooms)
-        {
-            index = allrooms[roomId].index;
-            layout = allrooms[roomId].layout;
-            floor1 = allrooms[roomId].floor1;
-            floor2 = allrooms[roomId].floor2;
-            blockset = allrooms[roomId].blockset;
-            spriteset = allrooms[roomId].spriteset;
-            palette = allrooms[roomId].palette;
-            collision = allrooms[roomId].collision;
-            bg2 = allrooms[roomId].bg2;
-            effect = allrooms[roomId].effect;
-            tag1 = allrooms[roomId].tag1;
-            tag2 = allrooms[roomId].tag2;
-            holewarp = allrooms[roomId].holewarp;
-            holewarp_plane = allrooms[roomId].holewarp_plane;
-            staircase_rooms = allrooms[roomId].staircase_rooms;
-            staircase_plane = allrooms[roomId].staircase_plane;
-            light = allrooms[roomId].light;
-            messageid = allrooms[roomId].messageid;
-            damagepit = allrooms[roomId].damagepit;
-            chest_list = allrooms[roomId].chest_list;
-            foreach (Room_Object o in allrooms[roomId].tilesObjects)
-            {
-
-                if (o is object_door)
-                {
-                    doors.Add(new doorSave((o as object_door).door_pos, (o as object_door).door_dir, (o as object_door).door_type));
-                }
-                else if (o.id == 0xE00) //block
-                {
-                    blocks.Add(new roomObjectSave(o));
-                }
-                else if (o.id == 0x150)//torches
-                {
-                    torches.Add(new roomObjectSave(o));
-                }
-                else
-                {
-                    tilesObjects.Add(new roomObjectSave(o));
-                }
-            }
-            foreach (PotItem o in allrooms[roomId].pot_items)
-            {
-                pot_items.Add(new roomPotSave(o));
-            }
-            foreach (Sprite o in allrooms[roomId].sprites)
-            {
-                sprites.Add(new roomSpriteSave(o));
-            }
-            sortSprites = allrooms[roomId].sortSprites;
-    }
-
-}
 
     public class configSave
     {
@@ -492,19 +471,21 @@ namespace ZeldaFullEditor
 
     }
 
-    public class MapSave
+    public struct MapSave
     {
-        public ushort[,] tiles = new ushort[32, 32]; //all map tiles (short values) 0 to 1024 from left to right
-        public bool largeMap = false;
-        public byte spriteset = 0;
-        public short index = 0;
-        public byte palette = 0;
-        public byte sprite_palette = 0;
-        public byte blockset = 0;
-        public string name = "";
+        public ushort[,] tiles; //all map tiles (short values) 0 to 1024 from left to right
+        public bool largeMap;
+        public byte spriteset;
+        public short index;
+        public byte palette;
+        public byte sprite_palette;
+        public byte blockset;
+        public string name;
 
-        public MapSave(short id)
+        public MapSave(short id,Overworld overworld)
         {
+            tiles = new ushort[32, 32];
+            largeMap = false;
             this.index = id;
             this.palette = (byte)(ROM.DATA[Constants.overworldMapPalette + index] << 2);
             this.blockset = ROM.DATA[Constants.mapGfx + index];
@@ -527,10 +508,10 @@ namespace ZeldaFullEditor
             {
                 for (int x = 0; x < 16; x++)
                 {
-                    tiles[(x * 2), (y * 2)] = Compression.map16tiles[t].tile0;
-                    tiles[(x * 2) + 1, (y * 2)] = Compression.map16tiles[t].tile1;
-                    tiles[(x * 2), (y * 2) + 1] = Compression.map16tiles[t].tile2;
-                    tiles[(x * 2) + 1, (y * 2) + 1] = Compression.map16tiles[t].tile3;
+                    tiles[(x * 2), (y * 2)] = overworld.map16tiles[t].tile0;
+                    tiles[(x * 2) + 1, (y * 2)] = overworld.map16tiles[t].tile1;
+                    tiles[(x * 2), (y * 2) + 1] = overworld.map16tiles[t].tile2;
+                    tiles[(x * 2) + 1, (y * 2) + 1] = overworld.map16tiles[t].tile3;
                     t++;
                 }
             }
