@@ -29,15 +29,26 @@ namespace ZeldaFullEditor
 
 
         public RoomSave[] all_rooms = new RoomSave[296];
-        public MapSave[] all_maps = new MapSave[158];
+        public MapSave[] all_maps = new MapSave[160];
         public void Export()
         {
+            all_rooms = new RoomSave[296];
+            all_maps = new MapSave[160];
             CheckGameTitle();
+            progressBar.Value++;
             LoadDungeonsRooms();
+            progressBar.Value++;
             LoadOverworldTiles();
+            progressBar.Value++;
             LoadOverworldMaps();
-
+            progressBar.Value++;
+            TextData.readAllText();
+            progressBar.Value++;
+            writeLog("All data loaded successfuly.", Color.Green, FontStyle.Bold);
+            
             SaveJson s = new SaveJson(all_rooms, all_maps, null, TextData.messages,overworld);
+            progressBar.Value = progressBar.Maximum;
+            writeLog("All data exported successfuly.", Color.Green, FontStyle.Bold);
         }
 
         public void LoadDungeonsRooms()
@@ -81,7 +92,7 @@ namespace ZeldaFullEditor
 
         public void LoadOverworldMaps()
         {
-            for (int i = 0; i < 158; i++)
+            for (int i = 0; i < 160; i++)
             {
                 try
                 {

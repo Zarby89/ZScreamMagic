@@ -12,16 +12,14 @@ namespace ZeldaFullEditor
         public short room;//word value for each room
 
         //Missing Values : 
-        /*
-        byte scrolledge_HU;//8 bytes per room, HU, FU, HD, FD, HL, FL, HR, FR
-        byte scrolledge_FU;
-        byte scrolledge_HD;
-        byte scrolledge_FD;
-        byte scrolledge_HL;
-        byte scrolledge_FL;
-        byte scrolledge_HR;
-        byte scrolledge_FR;*/
-
+        public byte scrolledge_HU;//8 bytes per room, HU, FU, HD, FD, HL, FL, HR, FR
+        public byte scrolledge_FU;
+        public byte scrolledge_HD;
+        public byte scrolledge_FD;
+        public byte scrolledge_HL;
+        public byte scrolledge_FL;
+        public byte scrolledge_HR;
+        public byte scrolledge_FR;
         public short yscroll;//2bytes each room
         public short xscroll; //2bytes
         public short yposition;//2bytes
@@ -56,6 +54,15 @@ namespace ZeldaFullEditor
             scrolling = (byte)(ROM.DATA[(Constants.entrance_scrolling + entranceId)]);
             scrollquadrant = (byte)(ROM.DATA[(Constants.entrance_scrollquadrant + entranceId)]);
             exit = (short)(((ROM.DATA[(Constants.entrance_exit + (entranceId * 2)) + 1]) << 8) + ROM.DATA[Constants.entrance_exit + (entranceId * 2)]);
+            scrolledge_HU = (byte)(ROM.DATA[(Constants.entrance_scrolledge + entranceId)]);
+            scrolledge_FU = (byte)(ROM.DATA[(Constants.entrance_scrolledge + entranceId) + 1]);
+            scrolledge_HD = (byte)(ROM.DATA[(Constants.entrance_scrolledge + entranceId) + 2]);
+            scrolledge_FD = (byte)(ROM.DATA[(Constants.entrance_scrolledge + entranceId) + 3]);
+            scrolledge_HL = (byte)(ROM.DATA[(Constants.entrance_scrolledge + entranceId) + 4]);
+            scrolledge_FL = (byte)(ROM.DATA[(Constants.entrance_scrolledge + entranceId) + 5]);
+            scrolledge_HR = (byte)(ROM.DATA[(Constants.entrance_scrolledge + entranceId) + 6]);
+            scrolledge_FR = (byte)(ROM.DATA[(Constants.entrance_scrolledge + entranceId) + 7]);
+
             if (startingEntrance == true)
             {
                 room = (short)((ROM.DATA[(Constants.startingentrance_room + ((entranceId) * 2)) + 1] << 8) + ROM.DATA[Constants.startingentrance_room + ((entranceId) * 2)]);
@@ -74,6 +81,14 @@ namespace ZeldaFullEditor
                 scrolling = (byte)(ROM.DATA[(Constants.startingentrance_scrolling + entranceId)]);
                 scrollquadrant = (byte)(ROM.DATA[(Constants.startingentrance_scrollquadrant + entranceId)]);
                 exit = (short)(((ROM.DATA[(Constants.startingentrance_exit + (entranceId * 2)) + 1] & 0x01) << 8) + ROM.DATA[Constants.startingentrance_exit + (entranceId * 2)]);
+                scrolledge_HU = (byte)(ROM.DATA[(Constants.startingentrance_scrolledge + entranceId)]);
+                scrolledge_FU = (byte)(ROM.DATA[(Constants.startingentrance_scrolledge + entranceId) + 1]);
+                scrolledge_HD = (byte)(ROM.DATA[(Constants.startingentrance_scrolledge + entranceId) + 2]);
+                scrolledge_FD = (byte)(ROM.DATA[(Constants.startingentrance_scrolledge + entranceId) + 3]);
+                scrolledge_HL = (byte)(ROM.DATA[(Constants.startingentrance_scrolledge + entranceId) + 4]);
+                scrolledge_FL = (byte)(ROM.DATA[(Constants.startingentrance_scrolledge + entranceId) + 5]);
+                scrolledge_HR = (byte)(ROM.DATA[(Constants.startingentrance_scrolledge + entranceId) + 6]);
+                scrolledge_FR = (byte)(ROM.DATA[(Constants.startingentrance_scrolledge + entranceId) + 7]);
             }
         }
 

@@ -71,6 +71,7 @@
             this.loadProjectToROMToolStripMenuItem.Name = "loadProjectToROMToolStripMenuItem";
             this.loadProjectToROMToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
             this.loadProjectToROMToolStripMenuItem.Text = "Load Project to ROM";
+            this.loadProjectToROMToolStripMenuItem.Click += new System.EventHandler(this.loadProjectToROMToolStripMenuItem_Click);
             // 
             // label1
             // 
@@ -105,7 +106,7 @@
             // 
             this.progressBar1.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.progressBar1.Location = new System.Drawing.Point(0, 261);
-            this.progressBar1.Maximum = 6;
+            this.progressBar1.Maximum = 10;
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(416, 23);
             this.progressBar1.Step = 8;

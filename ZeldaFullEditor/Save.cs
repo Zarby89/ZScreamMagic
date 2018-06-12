@@ -181,7 +181,7 @@ namespace ZeldaFullEditor
             {
                 Directory.CreateDirectory(path + "Overworld//Maps");
             }
-            for (int i = 0; i < 158; i++)
+            for (int i = 0; i < 160; i++)
             {
 
                 File.WriteAllText(path + "Overworld//Maps//Map" + i.ToString("D3") + ".json", JsonConvert.SerializeObject(all_maps[i]));
@@ -230,7 +230,7 @@ namespace ZeldaFullEditor
             {
                 Directory.CreateDirectory(path + "Texts");
             }
-
+            
             TextSave ts = new TextSave(TextData.messages);
             File.WriteAllText(path + "Texts//AllTexts.json", JsonConvert.SerializeObject(ts));
         }
@@ -480,6 +480,7 @@ namespace ZeldaFullEditor
         public byte palette;
         public byte sprite_palette;
         public byte blockset;
+        public short msgid;
         public string name;
 
         public MapSave(short id,Overworld overworld)
@@ -490,6 +491,7 @@ namespace ZeldaFullEditor
             this.palette = (byte)(ROM.DATA[Constants.overworldMapPalette + index] << 2);
             this.blockset = ROM.DATA[Constants.mapGfx + index];
             this.sprite_palette = (byte)(ROM.DATA[Constants.overworldSpritePalette + index]);
+            this.msgid = (short)((ROM.DATA[(Constants.overworldMessages + index * 2) + 1] << 8) + ROM.DATA[(Constants.overworldMessages + index * 2)]);
             if (index != 0x80)
             {
                 if (index <= 150)
@@ -502,8 +504,8 @@ namespace ZeldaFullEditor
             }
             this.spriteset = ROM.DATA[Constants.overworldSpriteset + index];
             this.name = ROMStructure.mapsNames[index];
-            int t = index * 256;
 
+            int t = index * 256;
             for (int y = 0; y < 16; y++)
             {
                 for (int x = 0; x < 16; x++)
@@ -518,7 +520,9 @@ namespace ZeldaFullEditor
 
 
 
+
         }
+
     }
 
 

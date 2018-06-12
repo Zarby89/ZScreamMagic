@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{A634564E-5323-48FE-A54C-B42AF25C5315}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ZeldaFullEditor</RootNamespace>
     <AssemblyName>ZeldaFullEditor</AssemblyName>
@@ -87,6 +87,7 @@
     <Compile Include="EntranceOW.cs" />
     <Compile Include="ExitOW.cs" />
     <Compile Include="Addresses.cs" />
+    <Compile Include="Importer.cs" />
     <Compile Include="Exporter.cs" />
     <Compile Include="Overworld.cs" />
     <Compile Include="ROMStructure.cs" />

@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,8 +23,13 @@ namespace ZeldaFullEditor
 
         public List<Tile16> tiles16 = new List<Tile16>();
         public List<Tile32> tiles32 = new List<Tile32>();
-        public void AssembleMap16Tiles()
+        public void AssembleMap16Tiles(bool fromJson = false)
         {
+            if (fromJson)
+            {
+                tiles16 = JsonConvert.DeserializeObject<Tile16[]>(File.ReadAllText("ProjectDirectory//Overworld//Tiles16.json")).ToList();
+                return;
+            }
             int tpos = Constants.map16Tiles;
             for (int i = 0; i < 3760; i += 1)
             {
@@ -70,10 +77,8 @@ namespace ZeldaFullEditor
         public void AssembleMap32Tiles()
         {
 
-            for (int i = 0; i < 0x33C0; i += 6)
+            for (int i = 0; i < 0x33F0; i += 6)
             {
-
-
                 ushort tl = (ushort)(ROM.DATA[Constants.map32TilesTL + (i)] + (((ROM.DATA[Constants.map32TilesTL + (i) + 4] >> 4) & 0x0f) * 256));
                 ushort tr = (ushort)(ROM.DATA[Constants.map32TilesTR + (i)] + (((ROM.DATA[Constants.map32TilesTR + (i) + 4] >> 4) & 0x0f) * 256));
                 ushort bl = (ushort)(ROM.DATA[Constants.map32TilesBL + (i)] + (((ROM.DATA[Constants.map32TilesBL + (i) + 4] >> 4) & 0x0f) * 256));
@@ -146,11 +151,8 @@ namespace ZeldaFullEditor
                         }
                         else
                         {
+                            Console.WriteLine("Found 0,0,0,0");
                             map16tiles[npos] = new Tile32(0, 0, 0, 0);
-                        }
-                        if (i == 0)
-                        {
-                            //Console.Write(tpos + ",");
                         }
                         npos++;
                         ttpos += 1;
@@ -173,7 +175,7 @@ namespace ZeldaFullEditor
             t32.Clear();
             t32Unique = new Tile32[10000];
             tiles32count = 0;
-            //69632 = numbers of 32x32 tiles
+            //40960 = numbers of 32x32 tiles 
 
             for (int i = 0; i < 40960; i++)
             {
@@ -212,7 +214,7 @@ namespace ZeldaFullEditor
 
             }
 
-            //Console.WriteLine("Nbr of tiles32 = " + tiles32count);
+            Console.WriteLine("Nbr of tiles32 = " + tiles32count);
 
         }
 
@@ -222,57 +224,22 @@ namespace ZeldaFullEditor
 
         public void AllMapTilesFromMap(int mapid, ushort[,] tiles, bool large = false)
         {
-            if (large == true)
+
+            string s = "";
+            int tpos = mapid * 256;
+            for (int y = 0; y < 16; y++)
             {
-                int tpos = mapid * 256;
-                for (int y = 0; y < 16; y++)
+                for (int x = 0; x < 16; x++)
                 {
-                    for (int x = 0; x < 16; x++)
-                    {
-                        map16tiles[tpos] = new Tile32(tiles[(x * 2), (y * 2)], tiles[(x * 2) + 1, (y * 2)], tiles[(x * 2), (y * 2) + 1], tiles[(x * 2) + 1, (y * 2) + 1]);
-                        tpos++;
-                    }
+                    map16tiles[tpos] = new Tile32(tiles[(x * 2), (y * 2)], tiles[(x * 2) + 1, (y * 2)], tiles[(x * 2), (y * 2) + 1], tiles[(x * 2) + 1, (y * 2) + 1]);
+                    s += "[" + map16tiles[tpos].tile0.ToString("D4")+","+ map16tiles[tpos].tile1.ToString("D4") + "," + map16tiles[tpos].tile2.ToString("D4") + "," + map16tiles[tpos].tile3.ToString("D4") + "] ";
+                    tpos++;
+                    
                 }
-                tpos = ((mapid + 1) * 256);
-                for (int y = 0; y < 16; y++)
-                {
-                    for (int x = 16; x < 32; x++)
-                    {
-                        map16tiles[tpos] = new Tile32(tiles[(x * 2), (y * 2)], tiles[(x * 2) + 1, (y * 2)], tiles[(x * 2), (y * 2) + 1], tiles[(x * 2) + 1, (y * 2) + 1]);
-                        tpos++;
-                    }
-                }
-                tpos = ((mapid + 8) * 256);
-                for (int y = 16; y < 32; y++)
-                {
-                    for (int x = 0; x < 16; x++)
-                    {
-                        map16tiles[tpos] = new Tile32(tiles[(x * 2), (y * 2)], tiles[(x * 2) + 1, (y * 2)], tiles[(x * 2), (y * 2) + 1], tiles[(x * 2) + 1, (y * 2) + 1]);
-                        tpos++;
-                    }
-                }
-                tpos = ((mapid + 9) * 256);
-                for (int y = 16; y < 32; y++)
-                {
-                    for (int x = 16; x < 32; x++)
-                    {
-                        map16tiles[tpos] = new Tile32(tiles[(x * 2), (y * 2)], tiles[(x * 2) + 1, (y * 2)], tiles[(x * 2), (y * 2) + 1], tiles[(x * 2) + 1, (y * 2) + 1]);
-                        tpos++;
-                    }
-                }
+                s += "\r\n";
             }
-            else
-            {
-                int tpos = mapid * 256;
-                for (int y = 0; y < 16; y++)
-                {
-                    for (int x = 0; x < 16; x++)
-                    {
-                        map16tiles[tpos] = new Tile32(tiles[(x * 2), (y * 2)], tiles[(x * 2) + 1, (y * 2)], tiles[(x * 2), (y * 2) + 1], tiles[(x * 2) + 1, (y * 2) + 1]);
-                        tpos++;
-                    }
-                }
-            }
+            File.WriteAllText("TileDebug.txt", s);
+
         }
 
 
@@ -282,7 +249,7 @@ namespace ZeldaFullEditor
             int c = tiles32count;
             for (int i = 0; i < c - 4; i += 6)
             {
-                if (i >= 0x33C0)
+                if (i >= 0x33F0)
                 {
                     Console.WriteLine("Too Many Unique Tiles !");
                     break;

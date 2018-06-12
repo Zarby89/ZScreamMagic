@@ -56,6 +56,7 @@ namespace ZeldaFullEditor
         public static int overlayPointers = 0x77664;
         public static int overlayPointersBank = 0x0E;
         public static int overworldTilesType = 0x71459;
+        public static int overworldMessages = 0x3F51D; //short value
         //===========================================================================================
         //Overworld Exits/Entrances Variables
         //===========================================================================================
