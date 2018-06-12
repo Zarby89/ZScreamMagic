@@ -89,6 +89,12 @@
     <Compile Include="Charactertable.cs" />
     <Compile Include="DataRoom.cs" />
     <Compile Include="DoAction.cs" />
+    <Compile Include="DungeonGenerator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DungeonGenerator.Designer.cs">
+      <DependentUpon>DungeonGenerator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Entrance.cs" />
     <Compile Include="EntranceOW.cs" />
     <Compile Include="ExitOW.cs" />
@@ -189,6 +195,9 @@
     <Compile Include="Tile16.cs" />
     <Compile Include="Tile32.cs" />
     <Compile Include="TileInfo.cs" />
+    <EmbeddedResource Include="DungeonGenerator.resx">
+      <DependentUpon>DungeonGenerator.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GlobalOptionForm.resx">
       <DependentUpon>GlobalOptionForm.cs</DependentUpon>
     </EmbeddedResource>

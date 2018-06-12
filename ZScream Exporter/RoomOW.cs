@@ -51,7 +51,7 @@ namespace ZeldaFullEditor
                 palette = value;
                 if (palette >= 72)
                 {
-                    palette = 71;
+                    palette = 72;
                 }
             }
         }
@@ -97,6 +97,7 @@ namespace ZeldaFullEditor
             index = id;
             spriteset = ROM.DATA[Constants.overworldSpriteset + index];
             addItems();
+           
         }
 
         public void addItems()
@@ -148,15 +149,16 @@ namespace ZeldaFullEditor
             staticgfx[4] = ROM.DATA[(int)(Constants.overworldgfxGroups + (blockset * 4) + 1)];
             staticgfx[5] = ROM.DATA[(int)(Constants.overworldgfxGroups + (blockset * 4) + 2)];
 
-            if (index >= 128)
+            if (index >= 128 & index < 132)
             {
                 staticgfx[4] = 71;
                 staticgfx[5] = 72;
             }
-            if (index >= 136)
+
+            /*if (index >= 136)
             {
                 staticgfx = new byte[] { 0, 70, 66, 65, 66, 65, 66, 65, 66, 0, 0, 0, 0, 0, 0, 0, 0 };
-            }
+            }*/
             //TODO : Need to find the position of these values for now they are hardcoded
             if (index >= 3 && index < 8)
             {
@@ -174,10 +176,15 @@ namespace ZeldaFullEditor
             {
                 staticgfx[7] = 89;
             }
+            else if (index >= 130)
+            {
+                staticgfx[7] = 89;
+            }
             else
             {
                 staticgfx[7] = 91;
             }
+            
 
             staticgfx[8] = 115 + 0; staticgfx[9] = 115 + 10; staticgfx[10] = 115 + 6; staticgfx[11] = 115 + 7; //Static Sprites Blocksets (fairy,pot,ect...)
             for (int i = 0; i < 4; i++)

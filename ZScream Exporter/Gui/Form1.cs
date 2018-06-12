@@ -214,6 +214,13 @@ namespace ZeldaFullEditor
                 ROM.DATA = (byte[])romBackup.Clone(); //restore previous rom data to prevent corrupting anything
                 return;
             }
+            if (save.saveOWExits())
+            {
+                MessageBox.Show("Failed to save ??, no idea why ", "Bad Error", MessageBoxButtons.OK);
+                ROM.DATA = (byte[])romBackup.Clone(); //restore previous rom data to prevent corrupting anything
+                return;
+            }
+
             saveInitialStuff(); //can't overwrite anything
 
             anychange = false;
@@ -650,6 +657,18 @@ namespace ZeldaFullEditor
                 owMapList.Nodes[0].Nodes.Add(subnode);
                 owMapList.Nodes[1].Nodes.Add(subnode2);
             }
+            for(int i = 0x80;i<0x92;i++)//specials
+            {
+                TreeNode subnode = new TreeNode(i.ToString("X2") + " " + ROMStructure.mapsNames[i]);
+                subnode.Tag = (short)(i);
+                owMapList.Nodes[2].Nodes.Add(subnode);
+            }
+            for (int i = 0x93; i < 0xA0; i++)//specials
+            {
+                TreeNode subnode = new TreeNode(i.ToString("X2") + " " + ROMStructure.mapsNames[i]);
+                subnode.Tag = (short)(i);
+                owMapList.Nodes[3].Nodes.Add(subnode);
+            }
             List<TreeNode> nodetoRemove = new List<TreeNode>();
             for (int i = 0; i < owMapList.Nodes[0].GetNodeCount(false); i++)
             {
@@ -788,7 +807,6 @@ namespace ZeldaFullEditor
                 }
                 //ds.scene.drawRoom();
             }
-
                 activeScene.drawRoom();
                 if (animated)
                 {
@@ -2548,60 +2566,89 @@ namespace ZeldaFullEditor
 
             //(map / 16) = Y position
             //map - (Y*16) = X position
-            int lowerX = 16; //what we need to remove from the image to the left
-            int lowerY = 16; //what we need to remove from the image to the right
-            int higherX = 0; //what we need to remove from the image to the left
-            int higherY = 0; //what we need to remove from the image to the right
-            Room savedRoom = activeScene.room;
+             int lowerX = 16; //what we need to remove from the image to the left
+             int lowerY = 16; //what we need to remove from the image to the right
+             int higherX = 0; //what we need to remove from the image to the left
+             int higherY = 0; //what we need to remove from the image to the right
+             Room savedRoom = activeScene.room;
 
-            if (selectedMapPng.Count > 0)
-            {
-                Bitmap b = new Bitmap(8192, 8192);
-                using (Graphics gb = Graphics.FromImage(b))
-                {
+             if (selectedMapPng.Count > 0)
+             {
+                 Bitmap b = new Bitmap(8192, 10752);
+                 using (Graphics gb = Graphics.FromImage(b))
+                 {
 
-                    foreach (short s in selectedMapPng)
-                    {
-                        int cx = 0;
-                        int cy = 0;
-                        cy = (s / 16);
-                        cx = s - (cy * 16);
-                        if (cx < lowerX) { lowerX = cx; }
-                        if (cy < lowerY) { lowerY = cy; }
-                        if (cx > higherX) { higherX = cx; }
-                        if (cy > higherY) { higherY = cy; }
+                     foreach (short s in selectedMapPng)
+                     {
+                         int cx = 0;
+                         int cy = 0;
+                         cy = (s / 16);
+                         cx = s - (cy * 16);
+                         if (cx < lowerX) { lowerX = cx; }
+                         if (cy < lowerY) { lowerY = cy; }
+                         if (cx > higherX) { higherX = cx; }
+                         if (cy > higherY) { higherY = cy; }
 
-                        activeScene.room = all_rooms[s];
-                        activeScene.room.reloadGfx();
-                        activeScene.need_refresh = true;
-                        activeScene.drawRoom();
-                        gb.DrawImage(activeScene.scene_bitmap, new Point(cx * 512, cy * 512));
-                    }
-                }
-                int image_size_x = ((higherX - lowerX) * 512) + 512;
-                int image_size_y = ((higherY - lowerY) * 512) + 512;
-                int image_start_x = lowerX * 512;
-                int image_start_y = lowerY * 512;
-                Bitmap nb = new Bitmap(image_size_x, image_size_y);
-                using (Graphics gb = Graphics.FromImage(nb))
-                {
-                    gb.DrawImage(b, 0, 0, new Rectangle(image_start_x, image_start_y, image_size_x, image_size_y), GraphicsUnit.Pixel);
-                }
+                         activeScene.room = all_rooms[s];
+                         activeScene.room.reloadGfx();
+                         activeScene.need_refresh = true;
+                         activeScene.drawRoom();
+                         gb.DrawImage(activeScene.scene_bitmap, new Point(cx * 512, cy * 512));
+                     }
+                 }
+                 int image_size_x = ((higherX - lowerX) * 512) + 512;
+                 int image_size_y = ((higherY - lowerY) * 512) + 512;
+                 int image_start_x = lowerX * 512;
+                 int image_start_y = lowerY * 512;
+                 Bitmap nb = new Bitmap(image_size_x, image_size_y);
+                 using (Graphics gb = Graphics.FromImage(nb))
+                 {
+                     gb.DrawImage(b, 0, 0, new Rectangle(image_start_x, image_start_y, image_size_x, image_size_y), GraphicsUnit.Pixel);
+                 }
 
-                nb.Save("MapTest.png");
-                b = null;
-                nb = null;
-            }
-            else
-            {
+                 nb.Save("MapTest.png");
+                 b.Dispose();
+                 b = null;
+                 nb.Dispose();
+                 nb = null;
+             }
+             else
+             {
 
-                //scene.scene_bitmap.Save("singlemap.png");
-            }
-            activeScene.room = savedRoom;
-            activeScene.room.reloadGfx();
-            activeScene.need_refresh = true;
-            activeScene.drawRoom();
+                 //scene.scene_bitmap.Save("singlemap.png");
+             }
+             activeScene.room = savedRoom;
+             activeScene.room.reloadGfx();
+             activeScene.need_refresh = true;
+             activeScene.drawRoom();
+            /* //All Overworld Maps Export Code
+           for (int i = 0; i < 0x80; i++)
+           {
+               addMapTab((short)i);
+               propertyGrid3.SelectedObject = (RoomOW)(activeScene as SceneOW).room;
+               RoomOW r = (RoomOW)(activeScene as SceneOW).room;
+               // (RoomOW)(activeScene as SceneOW)
+               r.updateOverworldPalettes();
+               r.palette = (byte)(ROM.DATA[Constants.overworldMapPalette + r.index] << 2);
+               r.blockset = ROM.DATA[Constants.mapGfx + r.index];
+               r.sprite_palette = (byte)(ROM.DATA[Constants.overworldSpritePalette + r.index]);
+               r.GetSelectedMapGfx();
+               (activeScene as SceneOW).DrawMap32Tiles();
+               (activeScene as SceneOW).createTmx("Maps");
+               //Palettes OW CODE :
 
+               Bitmap palette_bitmap = new Bitmap(256, 96);
+               pictureBox1.Image = palette_bitmap;
+               Graphics gpalette = Graphics.FromImage(pictureBox1.Image);
+               for (int x = 0; x < 16; x++)
+               {
+                   for (int y = 0; y < 6; y++)
+                   {
+                       gpalette.FillRectangle(new SolidBrush(GFX.loadedPalettes[x, y]), new Rectangle(x * 16, y * 16, 16, 16));
+                   }
+               }
+               pictureBox1.Refresh();
+           }*/
         }
 
 
@@ -3347,7 +3394,7 @@ namespace ZeldaFullEditor
                 addMapTab((short)e.Node.Tag);
                 propertyGrid3.SelectedObject = (RoomOW)(activeScene as SceneOW).room;
                 (activeScene as SceneOW).DrawMap32Tiles();
-
+                
                 //Palettes OW CODE :
 
                 Bitmap palette_bitmap = new Bitmap(256, 96);
@@ -3367,6 +3414,37 @@ namespace ZeldaFullEditor
         private void propertyGrid3_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
             (activeScene as SceneOW).need_refresh_gfx = true;
+        }
+
+        private void hideSpritesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            activeScene.need_refresh = true;
+        }
+
+        private void hideChestItemsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            activeScene.need_refresh = true;
+        }
+
+        private void selectAllMapForExportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < 296; i++)
+            {
+                selectedMapPng.Add((short)i);
+            }
+            loadRoomList(296);
+        }
+
+        private void deselectedAllMapForExportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            selectedMapPng.Clear();
+            loadRoomList(296);
+        }
+
+        private void tabControl2_Click(object sender, EventArgs e)
+        {
+            DungeonGenerator dg = new DungeonGenerator();
+            dg.ShowDialog();
         }
     }
 

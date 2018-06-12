@@ -143,7 +143,7 @@ namespace ZeldaFullEditor
         public static List<Size> posSize = new List<Size>();
         public static void DecompressAllMapTiles()
         {
-                int npos = 0;
+            int npos = 0;
             for (int i = 0; i < 160; i++)
             {
                 

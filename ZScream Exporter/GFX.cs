@@ -54,6 +54,7 @@ namespace ZeldaFullEditor
                 tpos += 2;
                 TileInfo t3 = gettilesinfo(BitConverter.ToInt16(ROM.DATA, (tpos)));
                 tpos += 2;
+
                 tiles16.Add(new Tile16(t0, t1, t2, t3));
             }
         }

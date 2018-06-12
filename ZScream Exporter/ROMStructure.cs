@@ -184,22 +184,31 @@ namespace ZeldaFullEditor
                 //LW
                 "Lost Woods","DP","Lumberjack","DM Hera Tower","DP","DM Wall of Caves","DP","DM Turtle Rock",
                 "DP","DP","Death Mountain Entrance","DP","DP","DP","DP","Hidden Waterfall",
-                "Woods Entrance","Top of Kakariko","Whirlpool Lake?","Sanctuary","Cemetery","River","Witch","Way to Zora",
+                "Woods Entrance","Top of Kakariko","Whirlpool Lake","Sanctuary","Cemetery","River","Witch","Way to Zora",
                 "Kakariko","DP","West of Castle","Castle","DP","Wooden Bridge","Eastern Palace","DP",
                 "DP","DP","Blacksmith","DP","DP","Octoroks","DP","DP",
                 "Race Game","Library","Flute Grove","West of Link's House","Link's House","Stone Bridge","Top of Hylia Lake","Flute #5",
-                "Desert","DP","Grove Ledge","North of Dam","South of Link's House","Lake Hylia","DP","Shopping Mall",
+                "Desert","DP","Grove Ledge","North of Dam","South of Links House","Lake Hylia","DP","Shopping Mall",
                 "DP","DP","Purple Chest Guy","Dam","East of Dam","DP","DP","South East Hylia",
 
                 //DW
                 "Skulls Woods","DP","Lumberjack","DM Ganon Tower","DP","DM Wall of Caves","DP","DM Turtle Rock",
                 "DP","DP","Death Mountain Entrance","DP","DP","DP","DP","Catfish",
-                "Woods Entrance","Top of Village of Outcast","Lake?","Sanctuary Cave","Cemetery","River","Witch","Way to Catfish",
+                "Woods Entrance","Top of Village of Outcast","Lake","Sanctuary Cave","Cemetery","River","Witch","Way to Catfish",
                 "Village of Outcast","DP","Lost Shop","Pyramid","DP","Wooden Bridge","Palace of Darkness","DP",
                 "DP","DP","Smith House","DP","DP","Rocky Area","DP","DP",
-                "Digging","Archery Minigame","Haunted Grove","West of Link's House","Link's House","Peg Bridge","Top of Hylia Lake","Flute #5",
+                "Digging","Archery Minigame","Haunted Grove","West of Link's House","Links House","Peg Bridge","Top of Hylia Lake","Flute #5",
                 "Misery Mire","DP","South of Grove","North of Swamp Palace","South of Link's House","Ice Palace","DP","Shopping Mall",
-                "DP","DP","Purple Chest Guy","Swamp","East of Swamp","DP","DP","South East Ice Palace"
+                "DP","DP","Purple Chest Guy","Swamp","East of Swamp","DP","DP","South East Ice Palace",
+
+                //Specials
+                "Master Sword/Under Bridge","Zora Domain","Unused","Unused","Unused","Unused","Unused","Unused",
+                "Unused","Unused","Unused","Unused","Unused","Unused","Unused","Unused","Unused","Unused","Unused",
+
+                //Backgrounds
+                "Triforce Room", "Master Sword/Under Bridge Mask", "Death Mountain BGR", "Pyramid BGR", "Forest BGR",
+                "Unused", "Unused", "Unused", "Unused", "???", "Cloud Overlay", "Tree Overlay", "Rain Overlay"
+
             };
         }
 

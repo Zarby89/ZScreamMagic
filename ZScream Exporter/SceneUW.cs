@@ -1476,12 +1476,24 @@ namespace ZeldaFullEditor
                 drawLayer1and3plusDoors();
                 drawLayer2();
                 drawLayersOnBgr();
-                drawChests();
-                drawSprites();
-                GFX.begin_draw(scene_bitmap);
-                room.drawPotsItems();
-                GFX.end_draw(scene_bitmap);
-                drawWarp();
+                if (!mainForm.hideChestItemsToolStripMenuItem.Checked)
+                {
+                    drawChests();
+                }
+                if (!mainForm.hideSpritesToolStripMenuItem.Checked)
+                {
+                    drawSprites();
+                }
+                if (!mainForm.hideItemsToolStripMenuItem.Checked)
+                {
+                    GFX.begin_draw(scene_bitmap);
+                    room.drawPotsItems();
+                    GFX.end_draw(scene_bitmap);
+                }
+                if (!mainForm.hideAllTextToolStripMenuItem.Checked)
+                {
+                    drawWarp();
+                }
                 drawGrid();
                 drawSelection();
                 drawEntrancePosition();
